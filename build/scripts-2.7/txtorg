@@ -1,0 +1,539 @@
+#!/usr/bin/python
+
+from Tkinter import *
+import tkMessageBox
+import tkFileDialog
+import tkFont
+import math
+import random
+import codecs
+import os
+import time
+import re
+import csv
+
+try:
+    import lucene
+    print "Pylucene found, using Lucene version %s" %(lucene.VERSION,)
+except:
+    sys.exit("Pylucene not found. Aborting")
+
+from textorganizer.engine import Corpus, Worker
+from textorganizer.analyzer_chooser import AnalyzerChooser
+import Queue
+from functools import partial
+
+class ImportDialog:
+    def __init__(self, parent, callback):
+        self.parent = parent
+        self.callback = callback
+        top = self.top = Toplevel(parent)
+        self.choice_var = IntVar()
+        Radiobutton(top, text="Import an entire directory", variable=self.choice_var, value=1).pack(anchor=W)
+        Radiobutton(top, text="Import from a CSV file (not including content)", variable=self.choice_var, value=2).pack(anchor=W)
+        Radiobutton(top, text="Import from a CSV file (including content)", variable=self.choice_var, value=3).pack(anchor=W)
+        b = Button(top, text="OK", command=self.ok)
+        b.pack(pady=5)
+
+    def ok(self):
+
+        if self.choice_var.get() == 1:
+            dir_name = tkFileDialog.askdirectory(parent=self.top ,title="Choose a directory to import...")
+            if dir_name == "" or dir_name == ():
+                return
+            self.callback({'dir': dir_name})
+            
+        elif self.choice_var.get() == 2:
+            file_name =  tkFileDialog.askopenfilename(parent=self.top ,title="Choose a CSV file containing filepaths and metadata...")
+            if file_name == "" or file_name == ():
+                return
+            self.callback({'file': file_name})
+
+        elif self.choice_var.get() == 3:
+            file_name =  tkFileDialog.askopenfilename(parent=self.top ,title="Choose a CSV file containing metadata and full contents...")
+            if file_name == "" or file_name == ():
+                return
+            self.callback({'full_file': file_name})            
+
+        self.top.destroy()
+
+class SaveTDMDialog:
+    def __init__(self, parent, callback):
+        self.parent = parent
+        self.callback = callback
+        top = self.top = Toplevel(parent)
+        self.choice_var = IntVar()
+        Radiobutton(top, text="CTM format", variable=self.choice_var, value=1).pack(anchor=W)
+        Radiobutton(top, text="STM format", variable=self.choice_var, value=2).pack(anchor=W)
+        Radiobutton(top, text="Flat CSV file", variable=self.choice_var, value=3).pack(anchor=W)
+        b = Button(top, text="OK", command=self.ok)
+        b.pack(pady=5)
+
+    def ok(self):
+        myFormats = [
+            ('Comma Separated Variable','*.csv')
+            ]
+
+        fileName = tkFileDialog.asksaveasfilename(parent=self.top,filetypes=myFormats ,title="Export TDM as...")
+        if fileName == "" or fileName == ():
+            return
+
+        if self.choice_var.get() == 1:
+            self.callback({'ctm': fileName})
+        if self.choice_var.get() == 2:
+            self.callback({'stm': fileName})
+        elif self.choice_var.get() == 3:
+            self.callback({'csv': fileName})          
+
+        self.top.destroy()
+
+class FieldSelectDialog:
+    def __init__(self, csv_file, parent, callback):
+        
+        self.parent = parent
+        self.callback = callback
+        top = self.top = Toplevel(parent)
+        Label(top, text="Choose the field containing text data to index:").pack()
+
+
+        with codecs.open(csv_file, 'r', encoding='UTF-8') as inf:
+            csvreader = csv.reader(inf, delimiter=',', quotechar='"')
+            self.fieldnames = csvreader.next()
+
+        self.fieldname_listbox = Listbox(top)
+        self.fieldname_listbox.pack()
+
+        for idx, f in enumerate(self.fieldnames):
+            self.fieldname_listbox.insert(END, f)
+            # Radiobutton(top, text=f, variable=self.choice_var, value=idx).pack(anchor=W)
+
+        b = Button(top, text="OK", command=self.ok)
+        b.pack(pady=5)
+
+    def ok(self):
+        sel = self.fieldname_listbox.curselection()
+        if len(sel) == 1:
+            self.callback(self.fieldnames[int(sel[0])])
+            self.top.destroy()
+
+
+
+class EntryDialog:
+    def __init__(self, parent, callback, label="Enter a value:"):
+        self.callback = callback
+        top = self.top = Toplevel(parent)
+        Label(top, text=label).pack()
+        self.e = Entry(top)
+        self.e.pack(padx=5)
+        b = Button(top, text="OK", command=self.ok)
+        b.pack(pady=5)
+
+    def ok(self):
+        self.callback(self.e.get())
+        self.top.destroy()
+
+class StatusBar(Frame):
+
+    def __init__(self, master):
+        Frame.__init__(self, master)
+        self.label = Label(self, bd=1, relief=SUNKEN, anchor=W)
+        self.label.pack(fill=X)
+
+    def set(self, format, *args):
+        self.label.config(text=format % args if args is not None else format)
+        self.label.update_idletasks()
+
+    def clear(self):
+        self.label.config(text="")
+        self.label.update_idletasks()
+
+class txtorgui:
+    def __init__(self):
+
+        self.cache_file = os.path.expanduser('~/.txtorg_index')
+
+        self.root = Tk()
+        self.customFont = tkFont.Font(family="Verdana", size=10)
+        self.queue = Queue.Queue()
+        lucene.initVM()
+        self.update()
+        self.root.title('Text Organizer - Powered by Apache Lucene version %s' % (lucene.VERSION,))
+        f = Frame(self.root, width=800, height=110,bg= "#%02x%02x%02x" % (78,78,78))
+        lf = Frame(f, relief=GROOVE, borderwidth=2)
+        Label(lf, text="Corpus", font=self.customFont).pack(pady=2,padx=2)
+
+        # Top level Menu bar
+        self.menubar = Menu(f, background = "#%02x%02x%02x" % (153,217,234), relief = RAISED)
+        menu = Menu(self.menubar, tearoff=0)
+        
+
+        self.menubar.add_cascade(label="File", menu=menu, font=self.customFont)
+        menu.add_command(label="New Corpus", command=self.new_corpus_btn_click, font=self.customFont)
+        menu.add_command(label="Open Corpus", command=self.open_corpus, font=self.customFont)
+
+        self.menu_c = Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label="Corpus", menu=self.menu_c, font=self.customFont)
+        self.menu_c.add_command(label="Import Documents...", command=self.import_btn_click, font=self.customFont, state=DISABLED)
+        self.menu_c.add_command(label="Rebuild Index File...", command=self.rebuild_btn_click, font=self.customFont, state=DISABLED)
+        self.menu_c.add_command(label="Change Analyzer...", command=self.change_analyzer, font=self.customFont, state=DISABLED)
+        self.menu_c.add_command(label="Delete Corpus...", command=self.delete_corpus, font=self.customFont, state=DISABLED)
+
+
+        f.master.config(menu=self.menubar)
+
+        self.status = StatusBar(f)
+        self.status.pack(side=BOTTOM, fill=X)
+
+        # Items in the left frame
+        self.corpuslist = Listbox(lf, width=40,exportselection=False)
+        corpusscroll = Scrollbar(lf, command=self.corpuslist.yview)
+        self.corpuslist.configure(yscrollcommand=corpusscroll.set)
+        self.corpuslist.pack(side=LEFT, fill=BOTH, expand=True)
+        corpusscroll.pack(side=LEFT, fill=Y)
+        lf.pack(side=LEFT, fill=BOTH, expand = 1,padx=10,pady=10)        
+      
+        # Items in the center frame
+        cf = Frame(f, relief=GROOVE, borderwidth=2)
+        Label(cf, text="Metadata", font=self.customFont).pack(pady=2,padx=2)
+
+        cft = Frame(cf, borderwidth=2)
+        cfb = Frame(cf, borderwidth=2)
+
+        
+        field_frame = Frame(cft, borderwidth=2)
+        field_label = Label(field_frame, text="Fields", font=self.customFont).pack(pady=2,padx=2)
+        self.mdlist = Listbox(field_frame, height=8, width=15, selectmode=SINGLE, exportselection=False)
+        scroll = Scrollbar(field_frame, command=self.mdlist.yview)
+        self.mdlist.configure(yscrollcommand=scroll.set)
+        self.mdlist.pack(side=LEFT,fill=BOTH,expand=True)
+        scroll.pack(side=LEFT,fill=Y)
+        field_frame.pack(side = LEFT, fill=BOTH, expand = True)
+
+        val_frame = Frame(cft, borderwidth=2)
+        val_label = Label(val_frame, text="Values", font=self.customFont).pack(pady=2,padx=2)
+        self.mdvallist = Listbox(val_frame, height=8, width=15, selectmode=BROWSE, exportselection=False)
+        val_scroll = Scrollbar(val_frame, command=self.mdvallist.yview)
+        self.mdvallist.configure(yscrollcommand=val_scroll.set)
+        self.mdvallist.pack(side=LEFT,fill=BOTH,padx=10,expand=True)
+        val_scroll.pack(side=LEFT,fill=Y)
+        val_frame.pack(side = LEFT, fill=BOTH, expand = True)
+
+        self.e = Entry(cfb,state=DISABLED)
+        self.e.pack(side=LEFT,fill=X,expand=1)
+
+        self.e.delete(0, END)
+        self.e.insert(0, "a default value")
+
+        self.searchbutton = Button(cfb, text="Search",state=DISABLED,command=self.runQuery, font=self.customFont)
+        self.searchbutton.pack(side=LEFT, padx=5, pady=8)
+
+        cft.pack(fill=BOTH, expand = 1)
+        cfb.pack(fill=X)
+        cf.pack(side=LEFT, fill=BOTH, expand = 1,pady=10,padx=10)
+
+        # Right frame
+
+        rf = Frame(f, relief=GROOVE, borderwidth=2)
+        Label(rf, text="Outputs", font=self.customFont).pack(pady=2,padx=2)
+        self.docstext = Text(rf,height=1,width=20)
+        self.termstext = Text(rf,height=1,width=20)
+        self.exportbutton = Button(rf, text="Export TDM",state=DISABLED,command=self.save_tdm_btn_click, font=self.customFont)
+        self.export_files_button = Button(rf, text="Export Files",state=DISABLED,command=self.save_files, font=self.customFont)
+        self.docstext.insert(END,"Documents: 0")
+        self.termstext.insert(END,"Terms: 0")        
+
+        self.docstext.pack()
+        self.termstext.pack()
+        self.exportbutton.pack()        
+        self.export_files_button.pack()        
+        
+        
+        rf.pack(side=RIGHT, fill=BOTH, expand = 1,pady=10,padx=10)
+
+
+        # Pack it all into the main frame
+        f.pack(fill=BOTH,expand=1)
+
+        # set up event handling
+
+        self.corpuslist.bind('<ButtonRelease-1>', lambda x: self.update_md_fields())
+        self.mdlist.bind('<ButtonRelease-1>', lambda x: self.update_md_values())
+        # populate fields and run the gui
+        
+        self.corpora = []
+        self.updateCorpus()
+
+
+        self.root.mainloop()
+
+    def write(self, data):
+        self.queue.put(data)
+
+    def update(self):
+        try:
+            while True:
+                line = self.queue.get_nowait()
+                if 'query_results' in line.keys():
+                    self.receive_query_results(*line['query_results'])
+                if 'error' in line.keys():
+                    self.show_error(line['error'])
+                if 'message' in line.keys():
+                    self.show_message(line['message'])
+                if 'rebuild_cache_complete' in line.keys():
+                    self.status.set("Finished rebuilding metadata cache!")
+                    self.updateCorpus()
+                if 'set_analyzer' in line.keys():
+                    self.set_analyzer(*line['set_analyzer'])
+                if 'status' in line.keys():
+                    self.status.set(line['status'])
+        except Queue.Empty:
+            pass
+
+        self.root.after(100, self.update)
+
+    def show_error(self,message):
+        tkMessageBox.showerror("Error", message)
+
+    def show_message(self,message):
+        tkMessageBox.showinfo("Error", message)
+
+    def new_corpus_btn_click(self):
+
+        dir_name = tkFileDialog.askdirectory(parent=self.root ,title="Choose a directory in which to save the Corpus...")
+        if dir_name == "" or dir_name == ():
+            return
+
+        d = EntryDialog(self.root, partial(self.make_new_corpus, dir_name), label="Please choose a name for the index")
+        self.root.wait_window(d.top)
+
+    def make_new_corpus(self,  dir_name, corpus_name):
+        # strip all non-alphanumeric characters from the corpus name
+        good_corpus_name = "".join([c for c in corpus_name if c.isalnum()])
+        if good_corpus_name == "": return
+
+        new_index_path = os.path.join(dir_name, good_corpus_name)
+
+        # For now, assume it new corpuses use StandardAnalyzer
+        c = Corpus(new_index_path, analyzer_str=None)
+        w = Worker(self, c, {'rebuild_metadata_cache': (self.cache_file, c.path)})
+        w.start()
+
+    def import_btn_click(self):
+        d = ImportDialog(self.root, self.import_files)
+        self.root.wait_window(d.top)
+
+    def rebuild_btn_click(self):
+        self.status.set("Rebuilding Metadata Cache... This could take a while depending on the size of the corpus.")
+        c = Worker(self, self.corpora[self.corpus_idx], {'rebuild_metadata_cache': (self.cache_file, self.corpora[self.corpus_idx].path)})
+        c.start()
+
+    def change_analyzer(self):
+        analyzer_gui = AnalyzerChooser(self)
+
+    def delete_corpus(self):
+        c = Worker(self, self.corpora[self.corpus_idx], {'delete': self.cache_file})
+        c.start()
+
+    def set_analyzer(self, analyzer_str, analyzer):
+        self.status.set("Rebuilding Index to use analyzer %s... This could take a while depending on the size of the corpus." % (analyzer_str,))
+        self.corpora[self.corpus_idx].analyzer = analyzer
+        self.corpora[self.corpus_idx].analyzer_str = analyzer_str
+        c = Worker(self, self.corpora[self.corpus_idx], {'reindex': None})
+        c.start()
+
+    def import_files(self, args_dir):
+        try:
+            if 'dir' in args_dir:
+                c = Worker(self, self.corpora[self.corpus_idx], {'import_directory': args_dir['dir']})
+                c.start()
+            elif 'file' in args_dir:
+                c = Worker(self, self.corpora[self.corpus_idx], {'import_csv': args_dir['file']})
+                c.start()
+            elif 'full_file' in args_dir:
+                d = FieldSelectDialog(args_dir['full_file'], self.root, partial(self.import_csv_with_content, args_dir['full_file']))
+                self.root.wait_window(d.top)
+        except AttributeError:
+            self.show_error("Please select a corpus before importing files.")
+
+    def import_csv_with_content(self, csv_file, content_field):
+        if content_field is None: return
+        self.status.set("Importing CSV; using text field %s" % (content_field,))
+        self.corpora[self.corpus_idx].content_field = content_field
+        c = Worker(self, self.corpora[self.corpus_idx], {'import_csv_with_content': (csv_file, content_field)})
+        c.start()
+
+    def open_corpus(self):
+        dir_name = tkFileDialog.askdirectory(parent=self.root ,title="Choose an existing Lucene index...")
+        if dir_name == "" or dir_name == ():
+            return
+
+        if not os.path.isfile(os.path.join(dir_name, 'segments.gen')):
+            self.show_error('Selected directory is not a Lucene index. Choose an existing index or create a new index with File + "New Corpus".')
+            return
+
+        c = Corpus(dir_name)
+        w = Worker(self, c, {'rebuild_metadata_cache': (self.cache_file, c.path)})
+        w.start()
+
+
+    def updateCorpus(self):
+        """update the list of items in the corpus"""
+        print "update corpus list"
+        self.status.set("Loading corpora from %s", self.cache_file)
+        self.corpora = []
+        self.corpuslist.delete(0, END)
+        corpus_count = 0
+        parse_re = re.compile(r'^(.+):\ *(.+)$')
+        cname = None
+        if os.path.isfile(self.cache_file):
+            with codecs.open(self.cache_file, encoding='UTF-8') as inf:
+                for line in inf:
+                    if line.strip() == "": 
+                        continue
+                    elif line.startswith("CORPUS:"):
+                        if corpus_count > 0:
+                            c = Corpus(cname, analyzer_str = canalyzer, field_dict = cfields, content_field=ccontent_field)
+                            self.corpora.append(c)
+                            self.corpuslist.insert(END, c.path)
+                        cname = line.split("CORPUS:")[1].strip()
+                        cfields = {}
+                        canalyzer = None
+                        ccontent_field = None
+                        corpus_count += 1 
+                    elif line.startswith("_ANALYZER:"):
+                        canalyzer = line.split("_ANALYZER:")[1].strip()
+                    elif line.startswith("_CONTENTFIELD:"):
+                        ccontent_field = line.split("_CONTENTFIELD:")[1].strip()
+                    elif parse_re.match(line):
+                        m = parse_re.match(line)
+                        cfields[m.group(1).strip()] = [x.strip('[] \n') for x in m.group(2).split('|')]
+                    else:
+                        print "Corrupted line found in cache file: ", line
+                # add in the last corpus
+                if cname is not None:
+                    c = Corpus(cname, field_dict = cfields, analyzer_str = canalyzer, content_field=ccontent_field)
+                    self.corpora.append(c)
+                    self.corpuslist.insert(END, c.path)
+        self.status.set("Corpora loaded from %s", self.cache_file)
+                
+                
+        if len(self.corpora) == 0:
+            self.write({'error': 'Corrupt or missing cache file. Please create a new corpus or open an existing one using the \"File\" menu.'})
+            with codecs.open(self.cache_file, 'w', encoding='UTF-8') as outf:
+                pass
+            
+    def getCorpus(self):        
+        """return the index of selected items within self.corpora. Not strictly necessary since self.corpora should be in the 
+        same order as self.corpuslist, but still a good idea."""
+
+        items = self.corpuslist.curselection()
+        selected_corpora = [c for c in range(len(self.corpora)) if self.corpora[c].path in map(lambda x: self.corpuslist.get(int(x)), items)]
+        
+        # multiple selection shouldn't be possible, but alex set up code to support it?
+        assert len(selected_corpora) <= 1
+        
+        if len(selected_corpora) == 0:
+            return None
+        elif len(selected_corpora) == 1:
+            return selected_corpora[0]
+            
+    def update_md_fields(self):
+        """update the metadata field to reflect the tags from the selected corpus"""                
+
+        self.corpus_idx = self.getCorpus()
+        if self.corpus_idx is None:
+            return
+
+        self.mdlist.delete(0,END)
+        self.mdvallist.delete(0,END)
+
+        for item in self.corpora[self.corpus_idx].field_dict.keys():
+            self.mdlist.insert(END, item)
+        
+        self.status.set("Corpus loaded: %i metadata fields found. Using analyzer %s", len(self.corpora[self.corpus_idx].field_dict.keys()), self.corpora[self.corpus_idx].analyzer_str)
+        # enable clicking on these
+        self.searchbutton.configure(state=NORMAL)
+        self.e.configure(state=NORMAL)
+
+        self.receive_query_results([], [], [])
+        
+        # enable the Corpus menu
+        for x in xrange(100):
+            try:
+                self.menu_c.entryconfig(x, state=NORMAL)
+            except:
+                break
+        
+    def update_md_values(self):
+        selected_field_idx = self.mdlist.curselection()
+        self.mdvallist.delete(0, END)
+        if len(selected_field_idx) == 0: return
+        selected_field = self.mdlist.get(selected_field_idx)
+        for x in self.corpora[self.corpus_idx].field_dict[selected_field]:
+            self.mdvallist.insert(END, x)
+
+    def save_tdm_btn_click(self):
+        d = SaveTDMDialog(self.root, self.saveTDM)
+        self.root.wait_window(d.top)
+
+    def saveTDM(self, args):
+        if 'ctm' in args:
+            c = Worker(self, self.corpora[self.corpus_idx], {'export_tdm': args['ctm']})
+            c.start()
+        elif 'stm' in args:
+            c = Worker(self, self.corpora[self.corpus_idx], {'export_tdm_stm': args['stm']})
+            c.start()
+        elif 'csv' in args:
+            c = Worker(self, self.corpora[self.corpus_idx], {'export_tdm_csv': args['csv']})
+            c.start()
+
+
+    def save_files(self):
+        """pop up a dialog to save the files"""
+
+        myFormats = [
+            ('Comma Separated Variable','*.csv')
+            ]
+
+        fileName = tkFileDialog.asksaveasfilename(parent=self.root,filetypes=myFormats)
+        if fileName == "" or fileName == ():
+            return
+
+        c = Worker(self, self.corpora[self.corpus_idx], {'export_contents': fileName})
+        c.start()
+
+    def runQuery(self):
+        """runs a query using the run_searcher method of the active Corpus"""
+        print "running query"
+        c = Worker(self, self.corpora[self.corpus_idx], {'search': self.e.get().strip()})
+        c.start()
+
+        # self.corpora[self.corpus_idx].run_searcher(self.e.get().strip())
+
+
+    def receive_query_results(self, scoreDocs, allTerms, allDicts):
+        self.corpora[self.corpus_idx].scoreDocs = scoreDocs
+        self.corpora[self.corpus_idx].allTerms = allTerms
+        self.corpora[self.corpus_idx].allDicts = allDicts
+
+        # Update the GUI
+        self.docstext.configure(state=NORMAL)
+        self.termstext.configure(state=NORMAL)
+        
+        self.docstext.delete(1.0,END)
+        self.termstext.delete(1.0,END)
+        self.docstext.insert(END,"Documents: "+str(len(scoreDocs)))
+        self.termstext.insert(END,"Terms: "+str(len(allTerms)))        
+                
+        self.docstext.configure(state=DISABLED)
+        self.termstext.configure(state=DISABLED)
+
+        if (len(scoreDocs)>0 and len(allTerms)>0):
+            self.exportbutton.configure(state=NORMAL)
+            self.export_files_button.configure(state=NORMAL)
+        else:
+            self.exportbutton.configure(state=DISABLED)
+            self.export_files_button.configure(state=DISABLED)
+            
+
+top = txtorgui()
