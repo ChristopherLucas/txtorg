@@ -418,7 +418,7 @@ class txtorgui:
                 
                 
         if len(self.corpora) == 0:
-            self.write({'error': 'Corrupt or missing cache file. Please create a new corpus or open an existing one using the \"File\" menu.'})
+            self.write({'error': """It looks like this is your first time using txtorg. Please create a new corpus or open an existing one using the \"File\" menu."""})
             with codecs.open(self.cache_file, 'w', encoding='UTF-8') as outf:
                 pass
             
