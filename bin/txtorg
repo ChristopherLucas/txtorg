@@ -34,6 +34,7 @@ class ImportDialog:
         self.callback = callback
         top = self.top = Toplevel(parent)
         self.choice_var = IntVar()
+        self.auto_correct = IntVar()
         self.encodings = StringVar(top)
         # This is label
         ttk.Label(self.top, text=u"SELECT PREPROCESSING OPTIONS", anchor='center',
@@ -49,35 +50,47 @@ class ImportDialog:
                         column=0, row=2, columnspan=3, sticky="ew")
 
         self.encodings.set("UTF-8") # default value
-        w = OptionMenu(top, self.encodings, 'DETECT', 'ASCII', 'UTF-8', 'UTF-16', 'UTF-32', 'Big5', 'GB2312', 'EUC-TW', 'HZ-GB-2312', 'ISO-2022-CN', 'EUC-JP', 'SHIFT_JIS', 'ISO-2022-JP', 'EUC-KR', 'ISO-2022-KR', 
+        w = OptionMenu(top, self.encodings, 'ASCII', 'UTF-8', 'UTF-16', 'UTF-32', 'Big5', 'GB2312', 'EUC-TW', 'HZ-GB-2312', 'ISO-2022-CN', 'EUC-JP', 'SHIFT_JIS', 'ISO-2022-JP', 'EUC-KR', 'ISO-2022-KR', 
                        'KOI8-R', 'MacCyrillic', 'IBM855', 'IBM866', 'ISO-8859-5', 'windows-1251', 'ISO-8859-2', 'windows-1250', 'ISO-8859-5', 'windows-1251', 'windows-1252', 'ISO-8859-7', 'windows-1253', 
                        'ISO-8859-8', 'windows-1255', 'TIS-620')
-        w.grid(row=3, column=0, sticky=W, padx = 3, pady=3)
+        w.grid(row=3, column=0, sticky=W, padx = 0, pady=3)
+        Radiobutton(top, text="Automatically Detect Encodings", variable=self.encodings, value='DETECT').grid(row=4, column=0, sticky=W, padx = 0, pady=3)
 
         separator = Frame(top, height=2, bd=1, relief=SUNKEN)
-        separator.grid(columnspan = 2, row=4, sticky = EW, padx = 3, pady=3)
+        separator.grid(columnspan = 2, row=5, sticky = EW, padx = 3, pady=3)
 
         # DICTIONARY REPLACE SECTION
         ttk.Label(self.top, text=u"Dictionary Replacement", anchor='center',
                 font=(12)).grid(in_=self.top,
-                        column=0, row=5, columnspan=3, sticky="ew")
+                        column=0, row=6, columnspan=3, sticky="ew")
         
         b = Button(top, text="Select dictionary file", command=self.select_dict)
-        b.grid(row=6, column=0, sticky = E, padx = 3, pady=3)
+        b.grid(row=7, column=0, sticky = W, padx = 3, pady=3)
                     
         separator = Frame(top, height=2, bd=1, relief=SUNKEN)
-        separator.grid(columnspan = 2, row=7, sticky = EW, padx = 3, pady=3)
+        separator.grid(columnspan = 2, row=8, sticky = EW, padx = 3, pady=3)
+        
+        # Auto Correct Section
+        ttk.Label(self.top, text=u"Automated Spelling Correction", anchor='center',
+                font=(12)).grid(in_=self.top,
+                        column=0, row=9, columnspan=3, sticky="ew")
+
+        Radiobutton(top, text="Auto-correct (English only)", variable=self.auto_correct, value=1).grid(row=10, column=0, columnspan = 2, sticky=W, padx = 3, pady=3)
+                    
+        separator = Frame(top, height=2, bd=1, relief=SUNKEN)
+        separator.grid(columnspan = 2, row=11, sticky = EW, padx = 3, pady=3)
+
 
         # IMPORT FORMAT SECTION
         ttk.Label(self.top, text=u"Corpus Format", anchor='center',
                   font=(12)).grid(in_=self.top,
-                        column=0, row=8, columnspan=3, sticky="ew")
+                        column=0, row=12, columnspan=3, sticky="ew")
                   
-        Radiobutton(top, text="Import an entire directory", variable=self.choice_var, value=1).grid(row=9, columnspan=2, sticky=W, padx = 3, pady=3)
-        Radiobutton(top, text="Import from a CSV file (not including content)", variable=self.choice_var, value=2).grid(row=10, columnspan=2, sticky=W, padx = 3, pady=3)
-        Radiobutton(top, text="Import from a CSV file (including content)", variable=self.choice_var, value=3).grid(row=11, columnspan=2, sticky=W, padx = 3, pady=3)
+        Radiobutton(top, text="Import an entire directory", variable=self.choice_var, value=1).grid(row=13, columnspan=2, sticky=W, padx = 3, pady=3)
+        Radiobutton(top, text="Import from a CSV file (not including content)", variable=self.choice_var, value=2).grid(row=14, columnspan=2, sticky=W, padx = 3, pady=3)
+        Radiobutton(top, text="Import from a CSV file (including content)", variable=self.choice_var, value=3).grid(row=15, columnspan=2, sticky=W, padx = 3, pady=3)
         b = Button(top, text="OK", command=self.ok)
-        b.grid(row=12, column=1, sticky = E, padx = 3, pady=3)
+        b.grid(row=16, column=1, sticky = E, padx = 3, pady=3)
         
     def ok(self):
         print(self.encodings.get())
