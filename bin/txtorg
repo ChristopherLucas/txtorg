@@ -45,14 +45,46 @@ class ImportDialog:
         separator.grid(columnspan = 2, row=1, sticky = EW, padx = 3, pady=3)
 
         # ENCODINGS SECTION
+
         ttk.Label(self.top, text=u"Encodings", anchor='center',
                 font=(12)).grid(in_=self.top,
                         column=0, row=2, columnspan=3, sticky="ew")
 
-        self.encodings.set("UTF-8") # default value
-        w = OptionMenu(top, self.encodings, 'ASCII', 'UTF-8', 'UTF-16', 'UTF-32', 'Big5', 'GB2312', 'EUC-TW', 'HZ-GB-2312', 'ISO-2022-CN', 'EUC-JP', 'SHIFT_JIS', 'ISO-2022-JP', 'EUC-KR', 'ISO-2022-KR', 
-                       'KOI8-R', 'MacCyrillic', 'IBM855', 'IBM866', 'ISO-8859-5', 'windows-1251', 'ISO-8859-2', 'windows-1250', 'ISO-8859-5', 'windows-1251', 'windows-1252', 'ISO-8859-7', 'windows-1253', 
-                       'ISO-8859-8', 'windows-1255', 'TIS-620')
+        OPTIONS = [
+            'ASCII', 
+            'UTF-8', 
+            'UTF-16', 
+            'UTF-32', 
+            'Big5', 
+            'GB2312', 
+            'EUC-TW', 
+            'HZ-GB-2312', 
+            'ISO-2022-CN', 
+            'EUC-JP', 
+            'SHIFT_JIS', 
+            'ISO-2022-JP', 
+            'EUC-KR', 
+            'ISO-2022-KR',            
+            'KOI8-R', 
+            'MacCyrillic', 
+            'IBM855', 
+            'IBM866', 
+            'ISO-8859-5', 
+            'windows-1251', 
+            'ISO-8859-2', 
+            'windows-1250', 
+            'ISO-8859-5', 
+            'windows-1251', 
+            'windows-1252', 
+            'ISO-8859-7', 
+            'windows-1253', 
+            'ISO-8859-8', 
+            'windows-1255', 
+            'TIS-620'
+            ]
+
+        self.encodings.set(OPTIONS[1]) # default value
+        w = apply(OptionMenu, (top, self.encodings) + tuple(OPTIONS))
         w.grid(row=3, column=0, sticky=W, padx = 0, pady=3)
         Radiobutton(top, text="Automatically Detect Encodings", variable=self.encodings, value='DETECT').grid(row=4, column=0, sticky=W, padx = 0, pady=3)
 
