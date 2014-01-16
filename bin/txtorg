@@ -190,7 +190,6 @@ class FieldSelectDialog:
         top = self.top = Toplevel(parent)
         Label(top, text="Choose the field containing text data to index:").pack()
 
-
         with codecs.open(csv_file, 'r', encoding='UTF-8') as inf:
             csvreader = csv.reader(inf, delimiter=',', quotechar='"')
             self.fieldnames = csvreader.next()
@@ -210,8 +209,6 @@ class FieldSelectDialog:
         if len(sel) == 1:
             self.callback(self.fieldnames[int(sel[0])])
             self.top.destroy()
-
-
 
 class EntryDialog:
     def __init__(self, parent, callback, label="Enter a value:"):
@@ -450,7 +447,8 @@ class txtorgui:
                 c = Worker(self, self.corpora[self.corpus_idx], {'import_csv': args_dir['file']})
                 c.start()
             elif 'full_file' in args_dir:
-                d = FieldSelectDialog(args_dir['full_file'], self.root, partial(self.import_csv_with_content, args_dir['full_file']))
+                d = FieldSelectDialog(args_dir['full_file'], self.root, 
+                                      partial(self.import_csv_with_content, args_dir['full_file']))
                 self.root.wait_window(d.top)
         except AttributeError:
             self.show_error("Please select a corpus before importing files.")

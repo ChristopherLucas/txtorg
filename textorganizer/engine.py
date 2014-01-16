@@ -24,12 +24,8 @@ class Corpus:
         if analyzer_str == 'StandardAnalyzer':
             return lucene.StandardAnalyzer(lucene.Version.LUCENE_CURRENT)
 
-
-
 class Worker(threading.Thread):
-
-    def __init__(self, parent, corpus, action):
-        
+    def __init__(self, parent, corpus, action, args_dir):
         # This is a subclass of threading.Thread that makes sure all the processor-intensive Lucene functions take place
         # in a separate thread. To use it, pass Worker a reference to the main txtorgui instance (it will communicate back
         # to this instance using parent.write()) a Corpus class, and an "action" dictionary that tells the threading.Thread.run() 
