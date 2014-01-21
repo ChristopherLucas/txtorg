@@ -3,8 +3,11 @@ import tkFileDialog
 import re
 import math,random
 import os, sys, lucene, thread, time
-from lucene import Version, \
-     StopAnalyzer, SimpleAnalyzer, WhitespaceAnalyzer, StandardAnalyzer, ArabicAnalyzer
+from lucene import Version, StopAnalyzer, SimpleAnalyzer, WhitespaceAnalyzer, StandardAnalyzer, ArabicAnalyzer, ArmenianAnalyzer, BasqueAnalyzer, \
+    BrazilianAnalyzer, BulgarianAnalyzer, CatalanAnalyzer, ChineseAnalyzer, CJKAnalyzer, CzechAnalyzer, DanishAnalyzer, DutchAnalyzer, \
+    EnglishAnalyzer, FinnishAnalyzer, FrenchAnalyzer, GalicianAnalyzer, GermanAnalyzer, GreekAnalyzer, HindiAnalyzer, HungarianAnalyzer, \
+    IndonesianAnalyzer, IrishAnalyzer, ItalianAnalyzer, LatvianAnalyzer, NorwegianAnalyzer, PersianAnalyzer, PortugueseAnalyzer, RomanianAnalyzer, \
+    RussianAnalyzer, SpanishAnalyzer, SwedishAnalyzer, ThaiAnalyzer, TurkishAnalyzer
 from . import stemmingtools
 
 class AnalyzerChooser:
@@ -20,17 +23,80 @@ class AnalyzerChooser:
                           StandardAnalyzer(Version.LUCENE_CURRENT),
                           stemmingtools.PorterStemmerAnalyzerBasic(Version.LUCENE_CURRENT),
                           stemmingtools.PorterStemmerAnalyzerPhrases(os.path.expanduser('~/phrases.txt')), 
-                          ArabicAnalyzer(Version.LUCENE_CURRENT)]
+                          ArabicAnalyzer(Version.LUCENE_CURRENT), 
+                          ArmenianAnalyzer(Version.LUCENE_CURRENT), 
+                          BasqueAnalyzer(Version.LUCENE_CURRENT),
+                          BrazilianAnalyzer(Version.LUCENE_CURRENT), 
+                          BulgarianAnalyzer(Version.LUCENE_CURRENT), 
+                          CatalanAnalyzer(Version.LUCENE_CURRENT), 
+                          ChineseAnalyzer(Version.LUCENE_CURRENT), 
+                          CJKAnalyzer(Version.LUCENE_CURRENT), 
+                          CzechAnalyzer(Version.LUCENE_CURRENT), 
+                          DanishAnalyzer(Version.LUCENE_CURRENT), 
+                          DutchAnalyzer(Version.LUCENE_CURRENT),
+                          EnglishAnalyzer(Version.LUCENE_CURRENT), 
+                          FinnishAnalyzer(Version.LUCENE_CURRENT), 
+                          FrenchAnalyzer(Version.LUCENE_CURRENT), 
+                          GalicianAnalyzer(Version.LUCENE_CURRENT), 
+                          GermanAnalyzer(Version.LUCENE_CURRENT), 
+                          GreekAnalyzer(Version.LUCENE_CURRENT), 
+                          HindiAnalyzer(Version.LUCENE_CURRENT), 
+                          HungarianAnalyzer(Version.LUCENE_CURRENT),
+                          IndonesianAnalyzer(Version.LUCENE_CURRENT), 
+                          IrishAnalyzer(Version.LUCENE_CURRENT), 
+                          ItalianAnalyzer(Version.LUCENE_CURRENT), 
+                          LatvianAnalyzer(Version.LUCENE_CURRENT), 
+                          NorwegianAnalyzer(Version.LUCENE_CURRENT), 
+                          PersianAnalyzer(Version.LUCENE_CURRENT), 
+                          PortugueseAnalyzer(Version.LUCENE_CURRENT), 
+                          RomanianAnalyzer(Version.LUCENE_CURRENT),
+                          RussianAnalyzer(Version.LUCENE_CURRENT), 
+                          SpanishAnalyzer(Version.LUCENE_CURRENT), 
+                          SwedishAnalyzer(Version.LUCENE_CURRENT), 
+                          ThaiAnalyzer(Version.LUCENE_CURRENT), 
+                          TurkishAnalyzer(Version.LUCENE_CURRENT)
+                          ]
 
-                          
         self.analyzerliststr = ['WhitespaceAnalyzer',
                                 'SimpleAnalyzer',
                                 'StopAnalyzer',
                                 'StandardAnalyzer',
                                 'PorterStemmerAnalyzerBasic',
                                 'PorterStemmerAnalyzerPhrases',
-                                'ArabicAnalyzer']                
-        
+                                'ArabicAnalyzer', 
+                                'ArmenianAnalyzer', 
+                                'BasqueAnalyzer',
+                                'BrazilianAnalyzer', 
+                                'BulgarianAnalyzer', 
+                                'CatalanAnalyzer', 
+                                'ChineseAnalyzer', 
+                                'CJKAnalyzer', 
+                                'CzechAnalyzer', 
+                                'DanishAnalyzer', 
+                                'DutchAnalyzer',
+                                'EnglishAnalyzer', 
+                                'FinnishAnalyzer', 
+                                'FrenchAnalyzer', 
+                                'GalicianAnalyzer', 
+                                'GermanAnalyzer', 
+                                'GreekAnalyzer', 
+                                'HindiAnalyzer', 
+                                'HungarianAnalyzer',
+                                'IndonesianAnalyzer', 
+                                'IrishAnalyzer', 
+                                'ItalianAnalyzer', 
+                                'LatvianAnalyzer', 
+                                'NorwegianAnalyzer', 
+                                'PersianAnalyzer', 
+                                'PortugueseAnalyzer', 
+                                'RomanianAnalyzer',
+                                'RussianAnalyzer', 
+                                'SpanishAnalyzer', 
+                                'SwedishAnalyzer', 
+                                'ThaiAnalyzer', 
+                                'TurkishAnalyzer'
+                                ]
+
         f = PanedWindow(r, showhandle=True)
         lf = PanedWindow(f, relief=GROOVE, borderwidth=2,showhandle=True)
         f.pack(fill=BOTH,expand=1)
