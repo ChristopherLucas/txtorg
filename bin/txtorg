@@ -441,23 +441,23 @@ class txtorgui:
     def import_files(self, args_dir):
         try:
             if 'dir' in args_dir:
-                c = Worker(self, self.corpora[self.corpus_idx], {'import_directory': args_dir['dir']})
+                c = Worker(self, self.corpora[self.corpus_idx], {'import_directory': args_dir['dir']}, args_dir = args_dir)
                 c.start()
             elif 'file' in args_dir:
-                c = Worker(self, self.corpora[self.corpus_idx], {'import_csv': args_dir['file']})
+                c = Worker(self, self.corpora[self.corpus_idx], {'import_csv': args_dir['file']}, args_dir = args_dir)
                 c.start()
             elif 'full_file' in args_dir:
                 d = FieldSelectDialog(args_dir['full_file'], self.root, 
-                                      partial(self.import_csv_with_content, args_dir['full_file']))
+                                      partial(self.import_csv_with_content, args_dir))
                 self.root.wait_window(d.top)
         except AttributeError:
             self.show_error("Please select a corpus before importing files.")
 
-    def import_csv_with_content(self, csv_file, content_field):
+    def import_csv_with_content(self, args_dir, content_field):
         if content_field is None: return
         self.status.set("Importing CSV; using text field %s" % (content_field,))
         self.corpora[self.corpus_idx].content_field = content_field
-        c = Worker(self, self.corpora[self.corpus_idx], {'import_csv_with_content': (csv_file, content_field)})
+        c = Worker(self, self.corpora[self.corpus_idx], {'import_csv_with_content': (args_dir['full_file'], content_field)}, args_dir)
         c.start()
 
     def open_corpus(self):
