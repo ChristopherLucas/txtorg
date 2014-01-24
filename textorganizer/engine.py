@@ -35,6 +35,7 @@ class Worker(threading.Thread):
         self.parent = parent
         self.corpus = corpus
         self.action = action
+        self.args_dir = args_dir
         self._init_index()
 
         super(Worker,self).__init__()
@@ -87,14 +88,13 @@ class Worker(threading.Thread):
         self.reader = lucene.IndexReader.open(self.lucene_index, True)
         self.analyzer = self.corpus.analyzer
 
-
-
     def import_directory(self, dirname):
         indexfiles.IndexFiles(dirname, self.corpus.path, self.analyzer)
 
     def import_csv(self, csv_file):
         try:
-            writer = lucene.IndexWriter(lucene.SimpleFSDirectory(lucene.File(self.corpus.path)), self.analyzer, False, lucene.IndexWriter.MaxFieldLength.LIMITED)
+            writer = lucene.IndexWriter(lucene.SimpleFSDirectory(lucene.File(self.corpus.path)), self.analyzer, False, 
+                                        lucene.IndexWriter.MaxFieldLength.LIMITED)
             changed_rows = addmetadata.add_metadata_from_csv(self.searcher, self.reader, writer, csv_file, new_files=True)
             writer.close()
         except UnicodeDecodeError:

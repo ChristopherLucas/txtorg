@@ -3,6 +3,7 @@
 import sys, os, lucene, threading, time
 from datetime import datetime
 import uuid
+from preprocessing import *
 
 """
 This class is loosely based on the Lucene (java implementation) demo class 

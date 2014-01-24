@@ -4,6 +4,7 @@ import sys
 import csv
 import codecs
 import uuid
+from preprocessing import *
 
 def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
     # csv.py doesn't do Unicode; encode temporarily as UTF-8:
@@ -97,7 +98,8 @@ def add_new_document_with_metadata_and_content(writer, fieldnames, values, conte
 
     for idx, name in enumerate(fieldnames):
         if name == content_field: 
-            doc.add(Field(fieldnames[idx].lower(),values[idx].lower(),Field.Store.YES,Field.Index.ANALYZED,Field.TermVector.YES))
+            contents = values[idx].lower()
+            doc.add(Field(fieldnames[idx].lower(),contents,Field.Store.YES,Field.Index.ANALYZED,Field.TermVector.YES))
         else:
             doc.add(Field(fieldnames[idx].lower(),values[idx].lower(),Field.Store.YES,Field.Index.NOT_ANALYZED))
 
