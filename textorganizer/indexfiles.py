@@ -17,8 +17,8 @@ resulting Lucene index will be placed in the current directory and called
 class IndexFiles(object):
     """Usage: python IndexFiles <doc_directory>"""
 
-    def __init__(self, root, storeDir, analyzer):
-
+    def __init__(self, root, storeDir, analyzer, args_dir):
+        self.args_dir = args_dir
         if not os.path.exists(storeDir):
             os.mkdir(storeDir)
             
@@ -44,6 +44,7 @@ class IndexFiles(object):
                     path = os.path.join(root, filename)
                     file = open(path)
                     contents = unicode(file.read(), 'UTF-8')
+                    contents = preprocess(contents, self.args_dir)
                     file.close()
                     doc = lucene.Document()
                     doc.add(lucene.Field("name", filename,

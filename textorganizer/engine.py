@@ -89,13 +89,14 @@ class Worker(threading.Thread):
         self.analyzer = self.corpus.analyzer
 
     def import_directory(self, dirname):
-        indexfiles.IndexFiles(dirname, self.corpus.path, self.analyzer)
+        indexfiles.IndexFiles(dirname, self.corpus.path, self.analyzer, self.args_dir)
 
     def import_csv(self, csv_file):
         try:
             writer = lucene.IndexWriter(lucene.SimpleFSDirectory(lucene.File(self.corpus.path)), self.analyzer, False, 
                                         lucene.IndexWriter.MaxFieldLength.LIMITED)
-            changed_rows = addmetadata.add_metadata_from_csv(self.searcher, self.reader, writer, csv_file, new_files=True)
+            changed_rows = addmetadata.add_metadata_from_csv(self.searcher, self.reader, writer, csv_file,self.args_dir, 
+                                                             new_files=True)
             writer.close()
         except UnicodeDecodeError:
             try:
@@ -109,7 +110,7 @@ class Worker(threading.Thread):
     def import_csv_with_content(self, csv_file, content_field):
         try:
             writer = lucene.IndexWriter(lucene.SimpleFSDirectory(lucene.File(self.corpus.path)), self.analyzer, False, lucene.IndexWriter.MaxFieldLength.LIMITED)
-            changed_rows = addmetadata.add_metadata_and_content_from_csv(self.searcher, self.reader, writer, csv_file, content_field)
+            changed_rows = addmetadata.add_metadata_and_content_from_csv(self.searcher, self.reader, writer, csv_file, content_field, self.args_dir)
             writer.close()
         except UnicodeDecodeError:
             try:

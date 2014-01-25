@@ -61,9 +61,9 @@ def add_metadata_to_doc(lucenedoc,fieldnames,values):
 
     return edited_doc
 
-def add_new_document_with_metadata(writer,filepath,fieldnames,values):
+def add_new_document_with_metadata(writer,filepath,fieldnames,values, args_dir):
     file = open(filepath)
-    contents = unicode(file.read(), 'UTF-8')
+    contents = preprocess(unicode(file.read(), 'UTF-8'), args_dir)
     file.close()
 
     doc = Document()
@@ -90,7 +90,7 @@ def add_new_document_with_metadata(writer,filepath,fieldnames,values):
 
     writer.addDocument(doc)
 
-def add_new_document_with_metadata_and_content(writer, fieldnames, values, content_field):
+def add_new_document_with_metadata_and_content(writer, fieldnames, values, content_field, args_dir):
     doc = Document()
     doc.add(Field("txtorg_id", str(uuid.uuid1()),
                          Field.Store.YES,
@@ -98,14 +98,14 @@ def add_new_document_with_metadata_and_content(writer, fieldnames, values, conte
 
     for idx, name in enumerate(fieldnames):
         if name == content_field: 
-            contents = values[idx].lower()
+            contents = preprocess(values[idx].lower(), args_dir)
             doc.add(Field(fieldnames[idx].lower(),contents,Field.Store.YES,Field.Index.ANALYZED,Field.TermVector.YES))
         else:
             doc.add(Field(fieldnames[idx].lower(),values[idx].lower(),Field.Store.YES,Field.Index.NOT_ANALYZED))
 
     writer.addDocument(doc)
 
-def add_metadata_from_csv(searcher,reader,writer,csvfile,new_files=False):
+def add_metadata_from_csv(searcher,reader,writer,csvfile,args_dir, new_files=False):
     csvreader = unicode_csv_reader(codecs.open(csvfile, encoding='UTF-8'), delimiter=',', quotechar='"')
     failed = False
 
@@ -126,14 +126,14 @@ def add_metadata_from_csv(searcher,reader,writer,csvfile,new_files=False):
         # if passed the new_files flag, just add documents to the index without checking whether or not they exist. This speeds things up considerably.
         if new_files:
             print "Adding document {0}".format(filepath)
-            add_new_document_with_metadata(writer,filepath,fieldnames,line[1:])
+            add_new_document_with_metadata(writer,filepath,fieldnames,line[1:], args_dir)
             continue
 
         # otherwise, look for a document pointing to this filepath in the index. If it's there, update it; otherwise add it.
         scoreDocs = docs_from_filepath(searcher,reader,filepath)
         if len(scoreDocs) == 0:
             print "Could not locate document {0}; adding to index.".format(filepath)
-            add_new_document_with_metadata(writer,filepath,fieldnames,line[1:])
+            add_new_document_with_metadata(writer,filepath,fieldnames,line[1:], args_dir)
         else:
             for scoreDoc in scoreDocs:
                 print "Updating document",filepath,"..."
@@ -150,8 +150,7 @@ def add_metadata_from_csv(searcher,reader,writer,csvfile,new_files=False):
     # return the number of rows changed
     return successful_rows
 
-
-def add_metadata_and_content_from_csv(searcher, reader, writer, csvfile, content_field):
+def add_metadata_and_content_from_csv(searcher, reader, writer, csvfile, content_field, args_dir):
     csvreader = unicode_csv_reader(codecs.open(csvfile, encoding='UTF-8'),delimiter=',',quotechar='"')
 
     successful_rows = 0
@@ -163,7 +162,7 @@ def add_metadata_and_content_from_csv(searcher, reader, writer, csvfile, content
             if content_field not in fieldnames: raise ValueError
             continue
 
-        add_new_document_with_metadata_and_content(writer, fieldnames, line, content_field)
+        add_new_document_with_metadata_and_content(writer, fieldnames, line, content_field, args_dir)
         successful_rows += 1
             
 
