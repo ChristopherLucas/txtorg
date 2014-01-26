@@ -17,7 +17,7 @@ resulting Lucene index will be placed in the current directory and called
 class IndexFiles(object):
     """Usage: python IndexFiles <doc_directory>"""
 
-    def __init__(self, root, storeDir, analyzer, args_dir):
+    def __init__(self, root, storeDir, analyzer, args_dir = None):
         self.args_dir = args_dir
         if not os.path.exists(storeDir):
             os.mkdir(storeDir)

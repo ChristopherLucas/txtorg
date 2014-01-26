@@ -35,6 +35,7 @@ class ImportDialog:
         top = self.top = Toplevel(parent)
         self.choice_var = IntVar()
         self.auto_correct = IntVar()
+        self.smart_replace = IntVar()
         self.encodings = StringVar(top)
         self.dict_filename = StringVar()
         # This is label
@@ -99,6 +100,8 @@ class ImportDialog:
         
         b = Button(top, text="Select dictionary file", command=self.select_dict)
         b.grid(row=7, column=0, sticky = W, padx = 3, pady=3)
+
+        Radiobutton(top, text="Smart replace", variable=self.smart_replace, value=1).grid(row=7, column=1, columnspan = 1, sticky=W, padx = 3, pady=3)
                     
         separator = Frame(top, height=2, bd=1, relief=SUNKEN)
         separator.grid(columnspan = 2, row=8, sticky = EW, padx = 3, pady=3)
@@ -137,19 +140,19 @@ class ImportDialog:
             dir_name = tkFileDialog.askdirectory(parent=self.top ,title="Choose a directory to import...")
             if dir_name == "" or dir_name == ():
                 return
-            self.callback({'dir': dir_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get()})
+            self.callback({'dir': dir_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get(), 'smart_replace':self.smart_replace.get()})
             
         elif self.choice_var.get() == 2:
             file_name =  tkFileDialog.askopenfilename(parent=self.top ,title="Choose a CSV file containing filepaths and metadata...")
             if file_name == "" or file_name == ():
                 return
-            self.callback({'file': file_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get()})
+            self.callback({'file': file_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get(), 'smart_replace':self.smart_replace.get()})
 
         elif self.choice_var.get() == 3:
             file_name =  tkFileDialog.askopenfilename(parent=self.top ,title="Choose a CSV file containing metadata and full contents...")
             if file_name == "" or file_name == ():
                 return
-            self.callback({'full_file': file_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get()}) 
+            self.callback({'full_file': file_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get(), 'smart_replace':self.smart_replace.get()}) 
         self.top.destroy()
 
 class SaveTDMDialog:
@@ -441,10 +444,10 @@ class txtorgui:
     def import_files(self, args_dir):
         try:
             if 'dir' in args_dir:
-                c = Worker(self, self.corpora[self.corpus_idx], {'import_directory': args_dir['dir']}, args_dir = args_dir)
+                c = Worker(self, self.corpora[self.corpus_idx], {'import_directory': args_dir['dir']}, args_dir)
                 c.start()
             elif 'file' in args_dir:
-                c = Worker(self, self.corpora[self.corpus_idx], {'import_csv': args_dir['file']}, args_dir = args_dir)
+                c = Worker(self, self.corpora[self.corpus_idx], {'import_csv': args_dir['file']}, args_dir)
                 c.start()
             elif 'full_file' in args_dir:
                 d = FieldSelectDialog(args_dir['full_file'], self.root, 
