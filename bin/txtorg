@@ -35,12 +35,10 @@ class ImportDialog:
         top = self.top = Toplevel(parent)
         self.choice_var = IntVar()
         self.auto_correct = IntVar()
-        self.smart_replace = IntVar()
+        self.simple_replace = IntVar()
         self.encodings = StringVar(top)
         self.dict_filename = StringVar()
-        self.dict_filename.set('Not entered')
         self.script_filename = StringVar()
-        self.script_filename.set('Not entered')
         # This is label
         ttk.Label(self.top, text=u"SELECT PREPROCESSING OPTIONS", anchor='center',
                 font=(18)).grid(in_=self.top,
@@ -104,7 +102,7 @@ class ImportDialog:
         b = Button(top, text="Select dictionary file", command=self.select_dict)
         b.grid(row=7, column=0, sticky = W, padx = 3, pady=3)
 
-        Radiobutton(top, text="Smart replace", variable=self.smart_replace, value=1).grid(row=7, column=1, columnspan = 1, sticky=W, padx = 3, pady=3)
+        Radiobutton(top, text="Simple replace", variable=self.simple_replace, value=1).grid(row=7, column=1, columnspan = 1, sticky=W, padx = 3, pady=3)
                     
         separator = Frame(top, height=2, bd=1, relief=SUNKEN)
         separator.grid(columnspan = 2, row=8, sticky = EW, padx = 3, pady=3)
@@ -163,22 +161,22 @@ class ImportDialog:
             dir_name = tkFileDialog.askdirectory(parent=self.top ,title="Choose a directory to import...")
             if dir_name == "" or dir_name == ():
                 return
-            self.callback({'dir': dir_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get(), 'smart_replace':self.smart_replace.get(), 
-                           'select_script':self.script_filename})
+            self.callback({'dir': dir_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get(), 'simple_replace':self.simple_replace.get(), 
+                           'script_filename':self.script_filename})
             
         elif self.choice_var.get() == 2:
             file_name =  tkFileDialog.askopenfilename(parent=self.top ,title="Choose a CSV file containing filepaths and metadata...")
             if file_name == "" or file_name == ():
                 return
-            self.callback({'file': file_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get(), 'smart_replace':self.smart_replace.get(),
-                           'select_script':self.select_filename})
+            self.callback({'file': file_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get(), 'simple_replace':self.simple_replace.get(),
+                           'script_filename':self.select_filename})
 
         elif self.choice_var.get() == 3:
             file_name =  tkFileDialog.askopenfilename(parent=self.top ,title="Choose a CSV file containing metadata and full contents...")
             if file_name == "" or file_name == ():
                 return
-            self.callback({'full_file': file_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get(), 'smart_replace':self.smart_replace.get(),
-                       'select_script':self.select_filename}) 
+            self.callback({'full_file': file_name, 'encodings': self.encodings.get(), 'dict_filename':self.dict_filename, 'autocorrect':self.auto_correct.get(), 'simple_replace':self.simple_replace.get(),
+                       'script_filename':self.select_filename}) 
         self.top.destroy()
 
 class SaveTDMDialog:

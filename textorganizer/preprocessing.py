@@ -2,8 +2,7 @@
 # This script hold the various preprocessing functions. They fold into indexfiles (for importing whole docs) or 
 # addmetadata (for importing from a CSV)
 
-import chardet
-import re, collections
+import chardet, re, collections
 
 def preprocess(contents, args_dir):
     processed_contents = convert_encodings(contents, args_dir)
@@ -12,7 +11,7 @@ def preprocess(contents, args_dir):
         import spellchecker # This is burried here because the script reads in the training 
                             # set, and that's super slow (so we don't want to do it if we don't have to)
         processed_contents = automated_english_spellcheck(processed_contents, args_dir) 
-    processed_contents = custom_script(processed_contents, args_dir) 
+    processed_contents = custom_script(processed_contents, args_dir)
     
     return(processed_contents)
 
@@ -33,26 +32,48 @@ def convert_encodings(contents, args_dir):
 ###################
 
 def dictionary_replace(contents, args_dir):
-    return(contents)
- #    if args_dir['autocorrect'] == '1':
-        
+    if type(args_dir['dict_filename']) == str:
 
-#     else:
-#         tokens = re.findall(r"[\w']+|[.,!?;]", contents)
-#         for t in tokens:
-            
-#         return(' '.join(tokens))
+        dict_filename = args_dir['dict_filename']
+        replace_dict = {}
+        with open(dict_filename, 'rb') as csvfile:
+            cr = csv.reader(csvfile)
+            for row in cr:    
+                replace_dict[row[0].lower()] = row[1].lower()
+
+        if args_dir['simple_replace'] == 1:
+            contents = replace_all(contents, replace_dict)
+            return(contents)
+
+        else: # if simple_replace != 1
+            pattern = re.compile(r'\b(' + '|'.join(replace_dict.keys()) + r')\b')
+            contents = pattern.sub(lambda x: replace_dict[x.group()], contents) # replaces whole words only
+            return(contents)
+        
+    else: # if dict_filename isn't a string
+        return(contents)
+        
+    return(contents)
 
 ###################
 ###################
 
 def custom_script(contents, args_dir):
-    print(type(args_dir['select_script']))
-    print(args_dir['select_script'].get())
-    if(type(args_dir['select_script']) == str):
-        script = args_dir['select_script']
+    if(type(args_dir['script_filename']) == str):
+        script = args_dir['script_filename']
         execfile(script)
         contents = custom(contents)
         return(contents)
     else:
         return(contents)
+
+######################
+######################
+# ASSORTED FUNCTIONS #
+######################
+######################
+
+def replace_all(text, dic):
+    for i, j in dic.iteritems():
+            text = text.replace(i,j)
+    return text
