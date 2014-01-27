@@ -6,7 +6,7 @@ import os, sys, lucene, thread, time
 from lucene import Version, StopAnalyzer, SimpleAnalyzer, WhitespaceAnalyzer, StandardAnalyzer, ArabicAnalyzer, ArmenianAnalyzer, BasqueAnalyzer, \
     BrazilianAnalyzer, BulgarianAnalyzer, CatalanAnalyzer, ChineseAnalyzer, CJKAnalyzer, CzechAnalyzer, DanishAnalyzer, DutchAnalyzer, \
     EnglishAnalyzer, FinnishAnalyzer, FrenchAnalyzer, GalicianAnalyzer, GermanAnalyzer, GreekAnalyzer, HindiAnalyzer, HungarianAnalyzer, \
-    IndonesianAnalyzer, IrishAnalyzer, ItalianAnalyzer, LatvianAnalyzer, NorwegianAnalyzer, PersianAnalyzer, PortugueseAnalyzer, RomanianAnalyzer, \
+    IndonesianAnalyzer, ItalianAnalyzer, LatvianAnalyzer, NorwegianAnalyzer, PersianAnalyzer, PortugueseAnalyzer, RomanianAnalyzer, \
     RussianAnalyzer, SpanishAnalyzer, SwedishAnalyzer, ThaiAnalyzer, TurkishAnalyzer
 from . import stemmingtools
 
@@ -43,7 +43,6 @@ class AnalyzerChooser:
                           HindiAnalyzer(Version.LUCENE_CURRENT), 
                           HungarianAnalyzer(Version.LUCENE_CURRENT),
                           IndonesianAnalyzer(Version.LUCENE_CURRENT), 
-                          IrishAnalyzer(Version.LUCENE_CURRENT), 
                           ItalianAnalyzer(Version.LUCENE_CURRENT), 
                           LatvianAnalyzer(Version.LUCENE_CURRENT), 
                           NorwegianAnalyzer(Version.LUCENE_CURRENT), 
@@ -83,7 +82,6 @@ class AnalyzerChooser:
                                 'HindiAnalyzer', 
                                 'HungarianAnalyzer',
                                 'IndonesianAnalyzer', 
-                                'IrishAnalyzer', 
                                 'ItalianAnalyzer', 
                                 'LatvianAnalyzer', 
                                 'NorwegianAnalyzer', 
