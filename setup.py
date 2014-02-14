@@ -1,4 +1,7 @@
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 setup(
     name='TxtOrg',
@@ -11,7 +14,5 @@ setup(
     license='LICENSE.txt',
     description='Tool to make organizing data for textual analysis easy and scalable',
     long_description=open('README.txt').read(),
-    install_requires=[
-        "Tkinter >= 8.0.0",
-    ],
+    install_requires=['chardet 2.2.1'],
 )
