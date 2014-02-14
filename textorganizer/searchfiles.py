@@ -6,7 +6,7 @@ import threading, sys, time, os, csv, re, codecs
 from shutil import copy2
 import cStringIO
 """
-This script is loosely based on the Lucene (java implementation) demo class 
+This script is loosely based on the Lucene (java implementation) demo class
 org.apache.lucene.demo.SearchFiles.
 """
 
@@ -21,7 +21,9 @@ class DictUnicodeWriter(object):
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, D):
-        self.writer.writerow({k:v.encode("utf-8") for k,v in D.items()})
+        for k in D:
+            self.writer.writerow({k:D[k].encode("utf-8")})
+        #self.writer.writerow({k:v.encode("utf-8") for k,v in D.items()})
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
         data = data.decode("utf-8")
@@ -80,7 +82,7 @@ def run(searcher, analyzer, reader, command, content_field="contents"):
         doc = searcher.doc(scoreDoc.doc)
         vector = reader.getTermFreqVector(scoreDoc.doc,content_field)
         if vector is None: continue
-        
+
         d = dict()
         allTerms = allTerms.union(map(lambda x: x.encode('utf-8'),vector.getTerms()))
         for (t,num) in zip(vector.getTerms(),vector.getTermFrequencies()):
@@ -88,7 +90,7 @@ def run(searcher, analyzer, reader, command, content_field="contents"):
         d["txtorg_id"] = doc.get("txtorg_id").encode('utf-8')
         allDicts.append(d)
     names = set(allTerms)
-    
+
 
     return scoreDocs, allTerms, allDicts
 
@@ -112,7 +114,7 @@ def writeTDM(allDicts,allTerms,fname):
 def write_CTM_TDM(scoreDocs, allDicts, allTerms, searcher, reader, fname, stm_format = False):
     l = list(allTerms)
     l.sort()
-    
+
     termid_dict = {}
     for termid,term in enumerate(l):
         termid_dict[term] = termid
@@ -134,7 +136,7 @@ def write_CTM_TDM(scoreDocs, allDicts, allTerms, searcher, reader, fname, stm_fo
     # or, if stm_format = True, uses format 'numterms termid1:termcount1 termid2:termcount2 [...]'
     tdm_output = []
     for document_dict in allDicts:
-        numterms = len(document_dict) - 1 
+        numterms = len(document_dict) - 1
         txtorg_id = document_dict['txtorg_id']
         terms = [str(termid_dict[k]) + ':' + str(document_dict[k]) for k in document_dict.keys() if k != 'txtorg_id']
         if stm_format:
@@ -149,7 +151,7 @@ def write_CTM_TDM(scoreDocs, allDicts, allTerms, searcher, reader, fname, stm_fo
     all_ids = [d['txtorg_id'] for d in allDicts]
 
     write_metadata(searcher, reader, all_ids, md_filename)
-    
+
 def write_metadata(searcher, reader, document_ids, fname):
     allFields = set([])
     docFields = []
@@ -167,17 +169,17 @@ def write_metadata(searcher, reader, document_ids, fname):
         docFields.append(df)
         allFields = allFields.union(set(df.keys()))
 
-    
+
     fields = ['name','path'] + sorted([x for x in allFields if x not in ['name','path']])
     with codecs.open(fname, 'w', encoding='UTF-8') as outf:
         dw = DictUnicodeWriter(outf, fields)
-        
+
         # writing header
         dhead = dict()
         for k in fields:
             dhead[k] = k
         dw.writerow(dhead)
-        
+
         # writing data
         for d in docFields:
             dw.writerow(d)
@@ -211,7 +213,7 @@ def write_contents(allDicts, searcher, reader, fname, content_field = "contents"
                     print "Failed for path %s with exception %s" % (path, e)
             elif field.name() in ['txtorg_id', 'name', 'path', content_field]:
                 df[field.name()] = field.stringValue()
-        
+
         all_fields = all_fields.union(set(df.keys()))
         doc_fields.append(df)
 
@@ -219,7 +221,7 @@ def write_contents(allDicts, searcher, reader, fname, content_field = "contents"
     with codecs.open(fname, 'w', encoding='UTF-8') as outf:
         dw = csv.DictWriter(outf, fields)
         dw.writeheader()
-        
+
         # writing data
         for d in doc_fields:
             dw.writerow(d)
