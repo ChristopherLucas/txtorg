@@ -14,5 +14,5 @@ setup(
     license='LICENSE.txt',
     description='Tool to make organizing data for textual analysis easy and scalable',
     long_description=open('README.txt').read(),
-    install_requires=['chardet 2.2.1'],
+    install_requires=['chardet >= 2.2.1'],
 )
