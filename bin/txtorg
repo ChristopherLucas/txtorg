@@ -217,7 +217,6 @@ class FieldSelectDialog:
         top = self.top = Toplevel(parent)
         Label(top, text="Choose the field containing text data to index:").pack()
 
-
         with codecs.open(csv_file, 'r', encoding='UTF-8') as inf:
             csvreader = csv.reader(inf, delimiter=',', quotechar='"')
             self.fieldnames = csvreader.next()
@@ -237,8 +236,6 @@ class FieldSelectDialog:
         if len(sel) == 1:
             self.callback(self.fieldnames[int(sel[0])])
             self.top.destroy()
-
-
 
 class EntryDialog:
     def __init__(self, parent, callback, label="Enter a value:"):
@@ -276,7 +273,6 @@ class txtorgui:
 
         self.root = Tk()
         self.customFont = tkFont.Font(family="Verdana", size=10)
-        self.smallFont = tkFont.Font(family="Verdana", size=8)
         self.queue = Queue.Queue()
         lucene.initVM()
         self.update()
@@ -357,37 +353,19 @@ class txtorgui:
         # Right frame
 
         rf = Frame(f, relief=GROOVE, borderwidth=2)
-        rft = Frame(rf, borderwidth=2)
-        rfb = Frame(rf, borderwidth=2)
-        
-        Label(rft, text="Outputs", font=self.customFont).pack(pady=2,padx=2)
-        self.docstext = Text(rft,height=1,width=20)
-        self.termstext = Text(rft,height=1,width=20)
-        self.exportbutton = Button(rfb, text="Export TDM",state=DISABLED,command=self.save_tdm_btn_click, font=self.customFont)
-        self.export_files_button = Button(rfb, text="Export Files",state=DISABLED,command=self.save_files, font=self.customFont)
+        Label(rf, text="Outputs", font=self.customFont).pack(pady=2,padx=2)
+        self.docstext = Text(rf,height=1,width=20)
+        self.termstext = Text(rf,height=1,width=20)
+        self.exportbutton = Button(rf, text="Export TDM",state=DISABLED,command=self.save_tdm_btn_click, font=self.customFont)
+        self.export_files_button = Button(rf, text="Export Files",state=DISABLED,command=self.save_files, font=self.customFont)
         self.docstext.insert(END,"Documents: 0")
-        self.termstext.insert(END,"Terms: 0")
+        self.termstext.insert(END,"Terms: 0")        
 
         self.docstext.pack()
         self.termstext.pack()
-
-        Label(rft, text="Include terms found in", font=self.smallFont).pack(pady=2,padx=2)
-        self.minVal = StringVar()
-        self.minDocs_box = Entry(rft, textvariable=self.minVal, width=5,state=DISABLED)
-        Label(rft, text="at least", font=self.smallFont).pack(side=LEFT,pady=2,padx=2)        
-        self.minDocs_box.pack(side=LEFT)
-        Label(rft, text="and at most", font=self.smallFont).pack(side=LEFT,pady=2,padx=2)        
-        self.minVal.trace("w", lambda name, index, mode, sv=self.minVal: self.cbminVal(sv))
-        self.maxVal = StringVar()        
-        self.maxDocs_box = Entry(rft, textvariable=self.maxVal, width=5,state=DISABLED)
-        self.maxDocs_box.pack(side=LEFT)
-        Label(rft, text="documents", font=self.smallFont).pack(side=RIGHT,pady=2,padx=2)
-        self.maxVal.trace("w", lambda name, index, mode, sv=self.maxVal: self.cbmaxVal(sv))
-        self.exportbutton.pack(pady=10)
-        self.export_files_button.pack()                
-
-        rft.pack(fill=BOTH, expand = 1)
-        rfb.pack(fill=X)
+        self.exportbutton.pack()        
+        self.export_files_button.pack()        
+        
         
         rf.pack(side=RIGHT, fill=BOTH, expand = 1,pady=10,padx=10)
 
@@ -414,14 +392,14 @@ class txtorgui:
         try:
             while True:
                 line = self.queue.get_nowait()
-                print(line.keys())
                 if 'query_results' in line.keys():
-                    print(line['query_results'])
                     self.receive_query_results(*line['query_results'])
                 if 'error' in line.keys():
                     self.show_error(line['error'])
                 if 'message' in line.keys():
                     self.show_message(line['message'])
+                if 'welcome' in line.keys():
+                    self.show_welcome(line['welcome'])
                 if 'rebuild_cache_complete' in line.keys():
                     self.status.set("Finished rebuilding metadata cache!")
                     self.updateCorpus()
@@ -439,6 +417,9 @@ class txtorgui:
 
     def show_message(self,message):
         tkMessageBox.showinfo("Error", message)
+
+    def show_welcome(self,message):
+        tkMessageBox.showinfo("Welcome!", message)
 
     def new_corpus_btn_click(self):
 
@@ -487,22 +468,23 @@ class txtorgui:
     def import_files(self, args_dir):
         try:
             if 'dir' in args_dir:
-                c = Worker(self, self.corpora[self.corpus_idx], {'import_directory': args_dir['dir']})
+                c = Worker(self, self.corpora[self.corpus_idx], {'import_directory': args_dir['dir']}, args_dir)
                 c.start()
             elif 'file' in args_dir:
-                c = Worker(self, self.corpora[self.corpus_idx], {'import_csv': args_dir['file']})
+                c = Worker(self, self.corpora[self.corpus_idx], {'import_csv': args_dir['file']}, args_dir)
                 c.start()
             elif 'full_file' in args_dir:
-                d = FieldSelectDialog(args_dir['full_file'], self.root, partial(self.import_csv_with_content, args_dir['full_file']))
+                d = FieldSelectDialog(args_dir['full_file'], self.root, 
+                                      partial(self.import_csv_with_content, args_dir))
                 self.root.wait_window(d.top)
         except AttributeError:
             self.show_error("Please select a corpus before importing files.")
 
-    def import_csv_with_content(self, csv_file, content_field):
+    def import_csv_with_content(self, args_dir, content_field):
         if content_field is None: return
         self.status.set("Importing CSV; using text field %s" % (content_field,))
         self.corpora[self.corpus_idx].content_field = content_field
-        c = Worker(self, self.corpora[self.corpus_idx], {'import_csv_with_content': (csv_file, content_field)})
+        c = Worker(self, self.corpora[self.corpus_idx], {'import_csv_with_content': (args_dir['full_file'], content_field)}, args_dir)
         c.start()
 
     def open_corpus(self):
@@ -561,7 +543,8 @@ class txtorgui:
                 
                 
         if len(self.corpora) == 0:
-            self.write({'error': 'Corrupt or missing cache file. Please create a new corpus or open an existing one using the \"File\" menu.'})
+            # self.write({'error': 'Corrupt or missing cache file. Please create a new corpus or open an existing one using the \"File\" menu.'})
+            self.write({'welcome': 'It looks like this is your first time using txtorg. Please create a new corpus or open an existing one using the \"File\" menu.'})
             with codecs.open(self.cache_file, 'w', encoding='UTF-8') as outf:
                 pass
             
@@ -598,7 +581,7 @@ class txtorgui:
         self.searchbutton.configure(state=NORMAL)
         self.e.configure(state=NORMAL)
 
-        self.receive_query_results([], [], [], {})
+        self.receive_query_results([], [], [])
         
         # enable the Corpus menu
         for x in xrange(100):
@@ -620,7 +603,6 @@ class txtorgui:
         self.root.wait_window(d.top)
 
     def saveTDM(self, args):
-        print args
         if 'ctm' in args:
             c = Worker(self, self.corpora[self.corpus_idx], {'export_tdm': args['ctm']})
             c.start()
@@ -654,25 +636,11 @@ class txtorgui:
 
         # self.corpora[self.corpus_idx].run_searcher(self.e.get().strip())
 
-    # callbacks for changing the values
-    def cbminVal(self,sv):
-        try:
-            val = int(sv.get())
-        except:
-            val = -1
-        self.corpora[self.corpus_idx].minVal = val
-    def cbmaxVal(self,sv):
-        try:
-            val = int(sv.get())
-        except:
-            val = -1
-        self.corpora[self.corpus_idx].maxVal = val
-        
-    def receive_query_results(self, scoreDocs, allTerms, allDicts, termsDocs):
+
+    def receive_query_results(self, scoreDocs, allTerms, allDicts):
         self.corpora[self.corpus_idx].scoreDocs = scoreDocs
         self.corpora[self.corpus_idx].allTerms = allTerms
         self.corpora[self.corpus_idx].allDicts = allDicts
-        self.corpora[self.corpus_idx].termsDocs = termsDocs
 
         # Update the GUI
         self.docstext.configure(state=NORMAL)
@@ -681,7 +649,7 @@ class txtorgui:
         self.docstext.delete(1.0,END)
         self.termstext.delete(1.0,END)
         self.docstext.insert(END,"Documents: "+str(len(scoreDocs)))
-        self.termstext.insert(END,"Terms: "+str(len(allTerms)))
+        self.termstext.insert(END,"Terms: "+str(len(allTerms)))        
                 
         self.docstext.configure(state=DISABLED)
         self.termstext.configure(state=DISABLED)
@@ -689,21 +657,9 @@ class txtorgui:
         if (len(scoreDocs)>0 and len(allTerms)>0):
             self.exportbutton.configure(state=NORMAL)
             self.export_files_button.configure(state=NORMAL)
-            self.minDocs_box.configure(state=NORMAL)
-            self.maxDocs_box.configure(state=NORMAL)
-            self.minVal.set(min(termsDocs.values()))
-            self.maxVal.set(max(termsDocs.values()))
         else:
-            # self.minDocs_box.configure(state=NORMAL)
-            # self.maxDocs_box.configure(state=NORMAL)            
-            # #self.minDocs_box.delete(1.0,END)
-            # #self.maxDocs_box.delete(1.0,END)            
             self.exportbutton.configure(state=DISABLED)
             self.export_files_button.configure(state=DISABLED)
-            self.minVal.set("")
-            self.maxVal.set("")
-            self.minDocs_box.configure(state=DISABLED)
-            self.maxDocs_box.configure(state=DISABLED)                        
             
 
 top = txtorgui()
