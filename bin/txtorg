@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.6
 
 from Tkinter import *
 import tkMessageBox
 import tkFileDialog
 import tkFont
-import ttk
 import math
 import random
 import codecs
@@ -40,7 +39,7 @@ class ImportDialog:
         self.dict_filename = StringVar()
         self.script_filename = StringVar()
         # This is label
-        ttk.Label(self.top, text=u"SELECT PREPROCESSING OPTIONS", anchor='center',
+        Label(self.top, text=u"SELECT PREPROCESSING OPTIONS", anchor='center',
                 font=(18)).grid(in_=self.top,
                         column=0, row=0, columnspan=3, sticky="ew")
         
@@ -49,7 +48,7 @@ class ImportDialog:
 
         # ENCODINGS SECTION
 
-        ttk.Label(self.top, text=u"Encodings", anchor='center',
+        Label(self.top, text=u"Encodings", anchor='center',
                 font=(12)).grid(in_=self.top,
                         column=0, row=2, columnspan=3, sticky="ew")
 
@@ -95,7 +94,7 @@ class ImportDialog:
         separator.grid(columnspan = 2, row=5, sticky = EW, padx = 3, pady=3)
 
         # DICTIONARY REPLACE SECTION
-        ttk.Label(self.top, text=u"Dictionary Replacement", anchor='center',
+        Label(self.top, text=u"Dictionary Replacement", anchor='center',
                 font=(12)).grid(in_=self.top,
                         column=0, row=6, columnspan=3, sticky="ew")
         
@@ -108,7 +107,7 @@ class ImportDialog:
         separator.grid(columnspan = 2, row=8, sticky = EW, padx = 3, pady=3)
 
         # CUSTOM PYTHON SCRIPT
-        ttk.Label(self.top, text=u"Custom Python Script", anchor='center',
+        Label(self.top, text=u"Custom Python Script", anchor='center',
                 font=(12)).grid(in_=self.top,
                         column=0, row=9, columnspan=3, sticky="ew")
         
@@ -119,7 +118,7 @@ class ImportDialog:
         separator.grid(columnspan = 2, row=11, sticky = EW, padx = 3, pady=3)
         
         # Auto Correct Section
-        ttk.Label(self.top, text=u"Automated Spelling Correction", anchor='center',
+        Label(self.top, text=u"Automated Spelling Correction", anchor='center',
                 font=(12)).grid(in_=self.top,
                         column=0, row=12, columnspan=3, sticky="ew")
 
@@ -130,7 +129,7 @@ class ImportDialog:
 
 
         # IMPORT FORMAT SECTION
-        ttk.Label(self.top, text=u"Corpus Format", anchor='center',
+        Label(self.top, text=u"Corpus Format", anchor='center',
                   font=(12)).grid(in_=self.top,
                         column=0, row=15, columnspan=3, sticky="ew")
                   
