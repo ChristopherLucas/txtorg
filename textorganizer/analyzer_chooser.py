@@ -3,98 +3,34 @@ import tkFileDialog
 import re
 import math,random
 import os, sys, lucene, thread, time
-from lucene import Version, StopAnalyzer, SimpleAnalyzer, WhitespaceAnalyzer, StandardAnalyzer, ArabicAnalyzer, ArmenianAnalyzer, BasqueAnalyzer, \
-    BrazilianAnalyzer, BulgarianAnalyzer, CatalanAnalyzer, ChineseAnalyzer, CJKAnalyzer, CzechAnalyzer, DanishAnalyzer, DutchAnalyzer, \
-    EnglishAnalyzer, FinnishAnalyzer, FrenchAnalyzer, GalicianAnalyzer, GermanAnalyzer, GreekAnalyzer, HindiAnalyzer, HungarianAnalyzer, \
-    IndonesianAnalyzer, ItalianAnalyzer, LatvianAnalyzer, NorwegianAnalyzer, PersianAnalyzer, PortugueseAnalyzer, RomanianAnalyzer, \
-    RussianAnalyzer, SpanishAnalyzer, SwedishAnalyzer, ThaiAnalyzer, TurkishAnalyzer
+from lucene import Version
+
+analyzerlist = ["StopAnalyzer", "SimpleAnalyzer", "WhitespaceAnalyzer", "StandardAnalyzer", "ArabicAnalyzer", "ArmenianAnalyzer", "BasqueAnalyzer", \
+     "BulgarianAnalyzer", "BrazilianAnalyzer", "CatalanAnalyzer", "CJKAnalyzer", "CzechAnalyzer", "DanishAnalyzer", "DutchAnalyzer", \
+     "FinnishAnalyzer", "FrenchAnalyzer", "GalicianAnalyzer", "GermanAnalyzer", "GreekAnalyzer", "HindiAnalyzer", "HungarianAnalyzer", \
+     "IndonesianAnalyzer", "ItalianAnalyzer", "LatvianAnalyzer", "NorwegianAnalyzer", "PersianAnalyzer", "PortugueseAnalyzer", \
+     "RomanianAnalyzer", "RussianAnalyzer", "SwedishAnalyzer", "ThaiAnalyzer", "TurkishAnalyzer"]
+
 from . import stemmingtools
 
 class AnalyzerChooser:
     def __init__(self, parent):
         self.main_gui = parent
-        self.curlucene = lucene.initVM()
+        self.curlucene = lucene.initVM()        
         r = self.root = Toplevel()
         self.root.title('txtorg')   
 
-        self.analyzers = [WhitespaceAnalyzer(),
-                          SimpleAnalyzer(),
-                          StopAnalyzer(Version.LUCENE_CURRENT),
-                          StandardAnalyzer(Version.LUCENE_CURRENT),
-                          stemmingtools.PorterStemmerAnalyzerBasic(Version.LUCENE_CURRENT),
-                          stemmingtools.PorterStemmerAnalyzerPhrases(os.path.expanduser('~/phrases.txt')), 
-                          ArabicAnalyzer(Version.LUCENE_CURRENT), 
-                          ArmenianAnalyzer(Version.LUCENE_CURRENT), 
-                          BasqueAnalyzer(Version.LUCENE_CURRENT),
-                          BrazilianAnalyzer(Version.LUCENE_CURRENT), 
-                          BulgarianAnalyzer(Version.LUCENE_CURRENT), 
-                          CatalanAnalyzer(Version.LUCENE_CURRENT), 
-                          ChineseAnalyzer(Version.LUCENE_CURRENT), 
-                          CJKAnalyzer(Version.LUCENE_CURRENT), 
-                          CzechAnalyzer(Version.LUCENE_CURRENT), 
-                          DanishAnalyzer(Version.LUCENE_CURRENT), 
-                          DutchAnalyzer(Version.LUCENE_CURRENT),
-                          EnglishAnalyzer(Version.LUCENE_CURRENT), 
-                          FinnishAnalyzer(Version.LUCENE_CURRENT), 
-                          FrenchAnalyzer(Version.LUCENE_CURRENT), 
-                          GalicianAnalyzer(Version.LUCENE_CURRENT), 
-                          GermanAnalyzer(Version.LUCENE_CURRENT), 
-                          GreekAnalyzer(Version.LUCENE_CURRENT), 
-                          HindiAnalyzer(Version.LUCENE_CURRENT), 
-                          HungarianAnalyzer(Version.LUCENE_CURRENT),
-                          IndonesianAnalyzer(Version.LUCENE_CURRENT), 
-                          ItalianAnalyzer(Version.LUCENE_CURRENT), 
-                          LatvianAnalyzer(Version.LUCENE_CURRENT), 
-                          NorwegianAnalyzer(Version.LUCENE_CURRENT), 
-                          PersianAnalyzer(Version.LUCENE_CURRENT), 
-                          PortugueseAnalyzer(Version.LUCENE_CURRENT), 
-                          RomanianAnalyzer(Version.LUCENE_CURRENT),
-                          RussianAnalyzer(Version.LUCENE_CURRENT), 
-                          SpanishAnalyzer(Version.LUCENE_CURRENT), 
-                          SwedishAnalyzer(Version.LUCENE_CURRENT), 
-                          ThaiAnalyzer(Version.LUCENE_CURRENT), 
-                          TurkishAnalyzer(Version.LUCENE_CURRENT)
-                          ]
+        self.analyzers = []
+        self.analyzerliststr = []
 
-        self.analyzerliststr = ['WhitespaceAnalyzer',
-                                'SimpleAnalyzer',
-                                'StopAnalyzer',
-                                'StandardAnalyzer',
-                                'PorterStemmerAnalyzerBasic',
-                                'PorterStemmerAnalyzerPhrases',
-                                'ArabicAnalyzer', 
-                                'ArmenianAnalyzer', 
-                                'BasqueAnalyzer',
-                                'BrazilianAnalyzer', 
-                                'BulgarianAnalyzer', 
-                                'CatalanAnalyzer', 
-                                'ChineseAnalyzer', 
-                                'CJKAnalyzer', 
-                                'CzechAnalyzer', 
-                                'DanishAnalyzer', 
-                                'DutchAnalyzer',
-                                'EnglishAnalyzer', 
-                                'FinnishAnalyzer', 
-                                'FrenchAnalyzer', 
-                                'GalicianAnalyzer', 
-                                'GermanAnalyzer', 
-                                'GreekAnalyzer', 
-                                'HindiAnalyzer', 
-                                'HungarianAnalyzer',
-                                'IndonesianAnalyzer', 
-                                'ItalianAnalyzer', 
-                                'LatvianAnalyzer', 
-                                'NorwegianAnalyzer', 
-                                'PersianAnalyzer', 
-                                'PortugueseAnalyzer', 
-                                'RomanianAnalyzer',
-                                'RussianAnalyzer', 
-                                'SpanishAnalyzer', 
-                                'SwedishAnalyzer', 
-                                'ThaiAnalyzer', 
-                                'TurkishAnalyzer'
-                                ]
-
+        for a in analyzerlist:
+            try:
+                exec('from lucene import '+a)
+                exec('self.analyzers.append('+a+'(Version.LUCENE_CURRENT))')
+                exec('self.analyzerliststr.append("'+a+'")')
+            except:
+                print "Analyzer not present", a
+                        
         f = PanedWindow(r, showhandle=True)
         lf = PanedWindow(f, relief=GROOVE, borderwidth=2,showhandle=True)
         f.pack(fill=BOTH,expand=1)

@@ -21,9 +21,11 @@ class DictUnicodeWriter(object):
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, D):
-        for k in D:
-            self.writer.writerow({k:D[k].encode("utf-8")})
+        for k,v in D.items():
+            self.writer.writerow({k:v.encode("utf-8")})
+        # from python27
         #self.writer.writerow({k:v.encode("utf-8") for k,v in D.items()})
+
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
         data = data.decode("utf-8")
@@ -76,9 +78,9 @@ def run(searcher, analyzer, reader, command, content_field="contents"):
 
     allDicts = []
     allTerms = set()
+    termsDocs = dict()
 
     for scoreDoc in scoreDocs:
-
         doc = searcher.doc(scoreDoc.doc)
         vector = reader.getTermFreqVector(scoreDoc.doc,content_field)
         if vector is None: continue
@@ -87,14 +89,37 @@ def run(searcher, analyzer, reader, command, content_field="contents"):
         allTerms = allTerms.union(map(lambda x: x.encode('utf-8'),vector.getTerms()))
         for (t,num) in zip(vector.getTerms(),vector.getTermFrequencies()):
             d[t.encode('utf-8')] = num
+            if t in termsDocs:
+                termsDocs[t.encode('utf-8')] += 1
+            else:
+                termsDocs[t.encode('utf-8')] = 1
         d["txtorg_id"] = doc.get("txtorg_id").encode('utf-8')
         allDicts.append(d)
     names = set(allTerms)
 
+    return scoreDocs, allTerms, allDicts, termsDocs
 
-    return scoreDocs, allTerms, allDicts
+def filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs):
+    import copy
+    
+    newDicts = copy.deepcopy(allDicts)
+    newTerms = copy.copy(allTerms)
 
-def writeTDM(allDicts,allTerms,fname):
+    # each dictionary maps a term to a count
+    # we need to count the dictionaries containing a term, and keep track of the terms to remove
+
+    removeTerms = [t for t in termsDocs if (termsDocs[t]<minDocs or termsDocs[t]>maxDocs)]
+    print removeTerms
+    # which terms to remove?
+    for d in newDicts:
+        for t in removeTerms:
+            if t in d:
+                d.pop(t)
+
+    return newDicts, newTerms-set(removeTerms)
+    
+def writeTDM(allDicts,allTerms,termsDocs,fname,minDocs=0,maxDocs=sys.maxint):
+    allDicts, allTerms = filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs)
     l = list(allTerms)
     l.sort()
     l = ['txtorg_id']+l
@@ -111,7 +136,8 @@ def writeTDM(allDicts,allTerms,fname):
         c.writerow(d)
     f.close()
 
-def write_CTM_TDM(scoreDocs, allDicts, allTerms, searcher, reader, fname, stm_format = False):
+def write_CTM_TDM(scoreDocs, allDicts, allTerms, termsDocs, searcher, reader, fname, stm_format = False,minDocs=0,maxDocs=sys.maxint):
+    allDicts, allTerms = filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs)
     l = list(allTerms)
     l.sort()
 

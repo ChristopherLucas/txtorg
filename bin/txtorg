@@ -272,6 +272,7 @@ class txtorgui:
 
         self.root = Tk()
         self.customFont = tkFont.Font(family="Verdana", size=10)
+        self.smallFont = tkFont.Font(family="Verdana", size=8)
         self.queue = Queue.Queue()
         lucene.initVM()
         self.update()
@@ -352,19 +353,37 @@ class txtorgui:
         # Right frame
 
         rf = Frame(f, relief=GROOVE, borderwidth=2)
-        Label(rf, text="Outputs", font=self.customFont).pack(pady=2,padx=2)
-        self.docstext = Text(rf,height=1,width=20)
-        self.termstext = Text(rf,height=1,width=20)
-        self.exportbutton = Button(rf, text="Export TDM",state=DISABLED,command=self.save_tdm_btn_click, font=self.customFont)
-        self.export_files_button = Button(rf, text="Export Files",state=DISABLED,command=self.save_files, font=self.customFont)
+        rft = Frame(rf, borderwidth=2)
+        rfb = Frame(rf, borderwidth=2)
+        
+        Label(rft, text="Outputs", font=self.customFont).pack(pady=2,padx=2)
+        self.docstext = Text(rft,height=1,width=20)
+        self.termstext = Text(rft,height=1,width=20)
+        self.exportbutton = Button(rfb, text="Export TDM",state=DISABLED,command=self.save_tdm_btn_click, font=self.customFont)
+        self.export_files_button = Button(rfb, text="Export Files",state=DISABLED,command=self.save_files, font=self.customFont)
         self.docstext.insert(END,"Documents: 0")
         self.termstext.insert(END,"Terms: 0")        
 
         self.docstext.pack()
         self.termstext.pack()
-        self.exportbutton.pack()        
-        self.export_files_button.pack()        
         
+        Label(rft, text="Include terms found in", font=self.smallFont).pack(pady=2,padx=2)
+        self.minVal = StringVar()
+        self.minDocs_box = Entry(rft, textvariable=self.minVal, width=5,state=DISABLED)
+        Label(rft, text="at least", font=self.smallFont).pack(side=LEFT,pady=2,padx=2)        
+        self.minDocs_box.pack(side=LEFT)
+        Label(rft, text="and at most", font=self.smallFont).pack(side=LEFT,pady=2,padx=2)        
+        self.minVal.trace("w", lambda name, index, mode, sv=self.minVal: self.cbminVal(sv))
+        self.maxVal = StringVar()        
+        self.maxDocs_box = Entry(rft, textvariable=self.maxVal, width=5,state=DISABLED)
+        self.maxDocs_box.pack(side=LEFT)
+        Label(rft, text="documents", font=self.smallFont).pack(side=RIGHT,pady=2,padx=2)
+        self.maxVal.trace("w", lambda name, index, mode, sv=self.maxVal: self.cbmaxVal(sv))
+        self.exportbutton.pack(pady=10)
+        self.export_files_button.pack()                
+
+        rft.pack(fill=BOTH, expand = 1)
+        rfb.pack(fill=X)
         
         rf.pack(side=RIGHT, fill=BOTH, expand = 1,pady=10,padx=10)
 
@@ -580,7 +599,7 @@ class txtorgui:
         self.searchbutton.configure(state=NORMAL)
         self.e.configure(state=NORMAL)
 
-        self.receive_query_results([], [], [])
+        self.receive_query_results([], [], [],{})
         
         # enable the Corpus menu
         for x in xrange(100):
@@ -602,6 +621,7 @@ class txtorgui:
         self.root.wait_window(d.top)
 
     def saveTDM(self, args):
+        print args
         if 'ctm' in args:
             c = Worker(self, self.corpora[self.corpus_idx], {'export_tdm': args['ctm']})
             c.start()
@@ -636,10 +656,25 @@ class txtorgui:
         # self.corpora[self.corpus_idx].run_searcher(self.e.get().strip())
 
 
-    def receive_query_results(self, scoreDocs, allTerms, allDicts):
+    # callbacks for changing the values
+    def cbminVal(self,sv):
+        try:
+            val = int(sv.get())
+        except:
+            val = -1
+            self.corpora[self.corpus_idx].minVal = val
+    def cbmaxVal(self,sv):
+        try:
+            val = int(sv.get())
+        except:
+            val = -1
+        self.corpora[self.corpus_idx].maxVal = val
+        
+    def receive_query_results(self, scoreDocs, allTerms, allDicts, termsDocs):
         self.corpora[self.corpus_idx].scoreDocs = scoreDocs
         self.corpora[self.corpus_idx].allTerms = allTerms
         self.corpora[self.corpus_idx].allDicts = allDicts
+        self.corpora[self.corpus_idx].termsDocs = termsDocs
 
         # Update the GUI
         self.docstext.configure(state=NORMAL)
@@ -656,9 +691,21 @@ class txtorgui:
         if (len(scoreDocs)>0 and len(allTerms)>0):
             self.exportbutton.configure(state=NORMAL)
             self.export_files_button.configure(state=NORMAL)
-        else:
+            self.minDocs_box.configure(state=NORMAL)
+            self.maxDocs_box.configure(state=NORMAL)
+            self.minVal.set(min(termsDocs.values()))
+            self.maxVal.set(max(termsDocs.values()))
+        else:            
+            # self.minDocs_box.configure(state=NORMAL)
+            # self.maxDocs_box.configure(state=NORMAL)            
+            # #self.minDocs_box.delete(1.0,END)
+            # #self.maxDocs_box.delete(1.0,END)            
             self.exportbutton.configure(state=DISABLED)
             self.export_files_button.configure(state=DISABLED)
+            self.minVal.set("")
+            self.maxVal.set("")
+            self.minDocs_box.configure(state=DISABLED)
+            self.maxDocs_box.configure(state=DISABLED)   
             
 
 top = txtorgui()

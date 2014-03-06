@@ -10,6 +10,7 @@ class Corpus:
     scoreDocs = None
     allTerms = None
     allDicts = None
+    termsDocs = None
 
     def __init__(self, path, analyzer_str = None, field_dict = None, content_field = None):
         self.path = path
@@ -139,7 +140,7 @@ class Worker(threading.Thread):
         start_time = datetime.datetime.now()
         try:
             self.parent.write({'status': 'Running Lucene query %s' % (command,)})
-            scoreDocs, allTerms, allDicts = searchfiles.run(self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
+            scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
                 
         except lucene.JavaError as e:
             if 'ParseException' in str(e):
@@ -152,7 +153,7 @@ class Worker(threading.Thread):
                 raise e
 
         end_time = datetime.datetime.now()
-        self.parent.write({'query_results': (scoreDocs, allTerms, allDicts)})
+        self.parent.write({'query_results': (scoreDocs, allTerms, allDicts, termsDocs)})
         self.parent.write({'status': 'Query completed in %s seconds' % ((end_time - start_time).microseconds*.000001)})
 
     def export_TDM(self, outfile):
@@ -160,7 +161,9 @@ class Worker(threading.Thread):
             self.parent.write({'error': "No documents selected, please run a query before exporting a TDM."})
             return
 
-        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms, self.searcher, self.reader, outfile)
+
+        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms, self.corpus.termsDocs,self.searcher,
+                                  self.reader, outfile,False,self.corpus.minVal,self.corpus.maxVal)
         self.parent.write({'message': "TDM exported successfully!"})
 
     def export_TDM_csv(self, outfile):
@@ -168,7 +171,7 @@ class Worker(threading.Thread):
             self.parent.write({'error': "No documents selected, please run a query before exporting a TDM."})
             return
 
-        searchfiles.writeTDM(self.corpus.allDicts, self.corpus.allTerms, outfile)
+        searchfiles.writeTDM(self.corpus.allDicts, self.corpus.allTerms, self.corpus.termsDocs, outfile, self.corpus.minVal,self.corpus.maxVal)
         self.parent.write({'message': "TDM exported successfully!"})
 
     def export_TDM_stm(self, outfile):
@@ -177,6 +180,8 @@ class Worker(threading.Thread):
             return
 
         searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms, self.searcher, self.reader, outfile, stm_format = True)
+        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms, self.corpus.termsDocs,self.searcher,
+                                  self.reader, outfile, True,self.corpus.minVal,self.corpus.maxVal)
         self.parent.write({'message': "TDM exported successfully!"})
 
     def export_contents(self, outfile):
