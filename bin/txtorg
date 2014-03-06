@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.6
 
 from Tkinter import *
 import tkMessageBox
@@ -16,7 +16,7 @@ try:
     import lucene
     print "Pylucene found, using Lucene version %s" %(lucene.VERSION,)
 except:
-    sys.exit("Could not import Lucene. Check your Lucene install and make sure that Python can find your JDK.")
+    sys.exit("PyLucene import failure. Check your JDK and your Lucene install. Aborting")
 
 from textorganizer.engine import Corpus, Worker
 from textorganizer.analyzer_chooser import AnalyzerChooser
