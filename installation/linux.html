@@ -1,97 +1,50 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>txtorg | preprocessing for text analysis</title>
-
-    <link rel="stylesheet" href="../stylesheets/styles.css">
-    <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
-    <script src="../javascripts/scale.fix.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-  </head>
-  <body>
-    <div class="wrapper">
-      <header>
-        <h1 class="header">txtorg</h1>
-        <p class="header">Software for preprocessing textual data in multiple languages for textual analysis. </p>
-
-        <ul>
-          <li class="download"><a class="buttons" href="https://github.com/ChristopherLucas/txtorg/zipball/master">Download ZIP</a></li>
-          <li class="download"><a class="buttons" href="https://github.com/ChristopherLucas/txtorg/tarball/master">Download TAR</a></li>
-          <li><a class="buttons github" href="https://github.com/ChristopherLucas/txtorg">View On GitHub</a></li>
-        </ul>
-
-        <p class="header">Produced by <a href="http://www.christopherlucas.org/">Christopher Lucas</a>, <a href="http://cns.bu.edu/~storer/">Alex Storer</a>, and <a href="http://scholar.harvard.edu/dtingley">Dustin Tingley</a>. Thanks to Sam Brotherton for work on earlier versions. </p>
-
-	<p class="header"> Send questions and suggestions to <a href="mailto:lucas.christopherd@gmail.com">Christopher Lucas</a>.</p>
-
-	<p class="header"> Cite: <a href="../cite/bibtex.tex">BibTeX</a> | Endnote </p>
-
-      </header>
-      <section>
-        <h1>
-	  <a name="linux-installation" class="anchor" href="#linux-installation"><span class="octicon octicon-link"></span></a>Linux installation</h1>
-	<p>If you are using a Linux distribution, the installation process is fairly straightforward (isn't this why we're using Linux, after all?). 
-First, download PyLucene 3.6.2 <a href ="http://lucene.apache.org/pylucene/install.html">here</a> (any version 3 release will do). 
-	  From a shell, navigate to the directory in which you saved the tarball. Then, install openjdk, Apache Ant, the gnu c++ compiler, python dev, 
-	  and PyLucene. Then, download and install txtorg as you would any other Python package. These steps are shown in the code block below for 
-	  Debian-like distros. If your distro uses the RPM package manager, we trust that you know this and know what you need to change in the instructions 
-	  below. If not, email <a href="mailto:lucas.christopherd@gmail.com">Christopher</a>. Also note that if you're using a 32-bit machine, you must edit the 
-	  setup.py file such that it points to the right directory in which 
-	you're JDK is installed (the default path includes a folder containing the processor and assumes 64-bit).</p>
-
-<pre><code>$ cd this_is_where/I_saved_my_tarball
-$ tar -zxvf pylucene-[PyLucene Version Here]-src.tar.gz
-$ sudo apt-get install openjdk-7-jdk
-$ sudo apt-get install ant
-$ sudo apt-get install g++
-$ sudo apt-get install python-dev
-$ cd pylucene-4.5.1-1/jcc
-$ sudo python setup.py build
-$ sudo python setup.py build
-$ cd ..
-</code></pre>
-
-	<p>Next, you need to edit the Makefile by uncommenting the section of code shown in the block below.</p>
-
-<pre><code># Linux (Ubuntu 11.10 64-bit, Python 2.7.2, OpenJDK 1.7, setuptools 0.6.16)
-# Be sure to also set JDK['linux2'] in jcc's setup.py to the JAVA_HOME value
-# used below for ANT (and rebuild jcc after changing it).
-PREFIX_PYTHON=/usr
-ANT=JAVA_HOME=/usr/lib/jvm/java-7-openjdk-i386 /usr/bin/ant
-PYTHON=$(PREFIX_PYTHON)/bin/python
-JCC=$(PYTHON) -m jcc --shared
-NUM_FILES=4	    
-</code></pre>
-
-<p>Back in the terminal, finish the installation process by issuing the following commands.</p>
-
-<pre><code>$ make
-$ sudo make install
-$ cd /where/I/saved/the/txtorg/tarball
-$ tar -zxvf ChristopherLucas-txtorg-303111d.tar.gz
-$ cd ChristopherLucas-txtorg-303111d
-$ sudo python setup.py build
-$ sudo python setup.py install
-</code></pre>
-
-      </section>
-    </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-		          <script type="text/javascript">
-            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-          </script>
-          <script type="text/javascript">
-            try {
-              var pageTracker = _gat._getTracker("UA-46998129-1");
-            pageTracker._trackPageview();
-            } catch(err) {}
-          </script>
-
-  </body>
-</html>
+<?php include 'php/header.php'; ?>
+<section>
+  <h1>
+    <a name="linux-installation" class="anchor" href="#linux-installation"><span class="octicon octicon-link"></span></a>Linux installation</h1>
+  <p>If you are using a Linux distribution, the installation process is fairly straightforward (isn't this why we're using Linux, after all?). 
+    First, download PyLucene 3.6.2 <a href ="http://lucene.apache.org/pylucene/install.html">here</a> (any version 3 release will do). 
+    From a shell, navigate to the directory in which you saved the tarball. Then, install openjdk, Apache Ant, the gnu c++ compiler, python dev, 
+    and PyLucene. Then, download and install txtorg as you would any other Python package. These steps are shown in the code block below for 
+    Debian-like distros. If your distro uses the RPM package manager, we trust that you know this and know what you need to change in the instructions 
+    below. If not, email <a href="mailto:lucas.christopherd@gmail.com">Christopher</a>. Also note that if you're using a 32-bit machine, you must edit the 
+    setup.py file such that it points to the right directory in which 
+    you're JDK is installed (the default path includes a folder containing the processor and assumes 64-bit).</p>
+  
+  <pre><code>$ cd this_is_where/I_saved_my_tarball
+      $ tar -zxvf pylucene-[PyLucene Version Here]-src.tar.gz
+      $ sudo apt-get install openjdk-7-jdk
+      $ sudo apt-get install ant
+      $ sudo apt-get install g++
+      $ sudo apt-get install python-dev
+      $ cd pylucene-4.5.1-1/jcc
+      $ sudo python setup.py build
+      $ sudo python setup.py build
+      $ cd ..
+  </code></pre>
+  
+  <p>Next, you need to edit the Makefile by uncommenting the section of code shown in the block below.</p>
+  
+  <pre><code># Linux (Ubuntu 11.10 64-bit, Python 2.7.2, OpenJDK 1.7, setuptools 0.6.16)
+      # Be sure to also set JDK['linux2'] in jcc's setup.py to the JAVA_HOME value
+      # used below for ANT (and rebuild jcc after changing it).
+      PREFIX_PYTHON=/usr
+      ANT=JAVA_HOME=/usr/lib/jvm/java-7-openjdk-i386 /usr/bin/ant
+      PYTHON=$(PREFIX_PYTHON)/bin/python
+      JCC=$(PYTHON) -m jcc --shared
+      NUM_FILES=4	    
+  </code></pre>
+  
+  <p>Back in the terminal, finish the installation process by issuing the following commands.</p>
+  
+  <pre><code>$ make
+      $ sudo make install
+      $ cd /where/I/saved/the/txtorg/tarball
+      $ tar -zxvf ChristopherLucas-txtorg-303111d.tar.gz
+      $ cd ChristopherLucas-txtorg-303111d
+      $ sudo python setup.py build
+      $ sudo python setup.py install
+  </code></pre>
+  
+</section>
+<?php include 'php/footer.php'; ?>
