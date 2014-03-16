@@ -16,7 +16,7 @@ layout: default
     file</a>, both <a href="http://txtorg.org/linux.html#apt">using
     APT</a> and <a href="http://txtorg.org/linux.html#dpkg">using
     dpkg</a>, then how to <a href="http://txtorg.org/linux.html#source">install PyLucene from source</a>. You only need
-    to do one of these. Then, well show you how to install txtorg.
+    to do one of these. Then, well show you how to <a href="http://txtorg.org/linux.html#txtorg-install">install txtorg</a>.
     
   <h2>
     <a name="Ubuntu" class="anchor" href="#deb"><span class="octicon octicon-link"></span></a>PyLucene Installation Instructions for Ubuntu/Debian</h2>
@@ -56,27 +56,28 @@ $ sudo dpkg -i pylucene_3.5.0-1.2_amd64.deb</code></pre>
 <pre><code>$ sudo apt-get install openjdk-7-jdk ant g++ python-dev</code></pre>
 
     Next, you need to build PyLucene. First, download PyLucene
-    3 <a href="http://lucene.apache.org/pylucene/install.html">here</a> (any
+    3 <a href="http://www.dsgnwrld.com/am/lucene/pylucene/">here</a> (any
     version 3 release will do). From a shell, navigate to the
-    directory in which you saved the tarball. Then edit the Makefile
-    and install PyLucene. These steps are displayed below.</p>
+    directory in which you saved the tarball, then proceed as follows.</p>
   
-<pre><code>$ cd this_is_where/I_saved_my_tarball
-$ tar -zxvf pylucene-[PyLucene Version Here]-src.tar.gz
-$ cd pylucene-4.5.1-1/jcc
-$ sudo python setup.py build
-$ cd ..</code></pre>
+<pre><code>$ cd this_is_where/I_saved_my_tarball # Navigate to the folder with the tarball
+$ tar -zxvf pylucene-[PyLucene Version Here]-src.tar.gz # Untar the tarball
+$ cd pylucene-4.5.1-1/jcc # Change directories in the jcc directory
+$ sudo python setup.py build 
+$ sudo python setup.py install
+$ cd .. # Change directories back to the parent directory</code></pre>
   
   <p>Next, in a text editor, you need to edit the Makefile by
-    uncommenting the section of code shown in the block below.  Note
-    that you'll uncomment a different portion of code if you're using
-    a 32-bit machine.</p>
+    uncommenting the section of code shown in the block below (that
+    is, open the Makefile in a text editor, edit it accordingly, save,
+    and close it).  Note that you'll uncomment a different portion of
+    code if you're using a 32-bit machine.</p>
   
 <pre><code># Linux (Ubuntu 11.10 64-bit, Python 2.7.2, OpenJDK 1.7, setuptools 0.6.16)
 # Be sure to also set JDK['linux2'] in jcc's setup.py to the JAVA_HOME value
 # used below for ANT (and rebuild jcc after changing it).
 PREFIX_PYTHON=/usr
-ANT=JAVA_HOME=/usr/lib/jvm/java-7-openjdk-i386 /usr/bin/ant
+ANT=JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64 /usr/bin/ant
 PYTHON=$(PREFIX_PYTHON)/bin/python
 JCC=$(PYTHON) -m jcc --shared
 NUM_FILES=4	    
@@ -89,7 +90,7 @@ $ sudo make install
 </code></pre>
 
   <h2>
-    <a name="linux-installation" class="anchor" href="#linux-installation"><span class="octicon octicon-link"></span></a>Installing txtorg</h2>
+    <a name="txtorg-install" class="anchor" href="#linux-installation"><span class="octicon octicon-link"></span></a>Installing txtorg</h2>
   <p>Now that you've met the dependencies for the package, you can install txtorg locally as you would any other Python module.</p>
 
 <pre><code>$ wget --no-check-certificate https://github.com/ChristopherLucas/txtorg/tarball/master -O - | tar xz
