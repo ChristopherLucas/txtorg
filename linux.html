@@ -4,18 +4,26 @@ layout: default
 <section>
   <h1>
     <a name="linux-installation" class="anchor" href="#linux-installation"><span class="octicon octicon-link"></span></a>Linux installation</h1>
-  <p>If you are using a Linux distribution, the installation process is fairly straightforward (isn't this why we're using Linux, after all?). 
-    txtorg depends on PyLucene, which depends on gcc/g++, the JDK, Ant, and the Python development packages. If you're using Ubuntu/Debian, 
-    there is a PyLucene deb that you can install. Otherwise, you'll have to build PyLucene from source, as well as any missing dependencies. After satisfying
-    the dependencies, you may install txtorg as you would any other Python package. We'll first show you <a href="http://txtorg.org/linux.html#deb">how to install the PyLucene deb 
-    file</a>, then how to install PyLucene from source. 
+  <p>If you are using a Linux distribution, the installation process
+    is fairly straightforward. txtorg depends on PyLucene, which
+    depends on gcc/g++, the JDK, Ant, and the Python development
+    packages. If you're using Ubuntu/Debian, there is a PyLucene deb
+    that you can install, which will automatically install any missing
+    dependencies. Otherwise, you'll have to build PyLucene from
+    source, as well as any missing dependencies. After satisfying the
+    dependencies, you may install txtorg as you would any other Python
+    package. We'll first show you how to install the PyLucene deb
+    file</a>, both <a href="http://txtorg.org/linux.html#apt">using
+    APT</a> and <a href="http://txtorg.org/linux.html#dpkg">using
+    dpkg</a>, then how to <a href="http://txtorg.org/linux.html#source">install PyLucene from source</a>. You only need
+    to do one of these. Then, well show you how to install txtorg.
     
   <h2>
-    <a name="deb" class="anchor" href="#deb"><span class="octicon octicon-link"></span></a>PyLucene Installation Instructions for Ubuntu/Debian</h2>
+    <a name="Ubuntu" class="anchor" href="#deb"><span class="octicon octicon-link"></span></a>PyLucene Installation Instructions for Ubuntu/Debian</h2>
   <p>You can either install PyLucene with APT or you can download the deb and install it. The former is probably best but we'll describe both for good measure.</p>
   
   <h3>
-    <a name="linux-installation" class="anchor" href="#linux-installation"><span class="octicon octicon-link"></span></a>APT</h3>
+    <a name="apt" class="anchor" href="#linux-installation"><span class="octicon octicon-link"></span></a>APT</h3>
   
   <p>First, confirm that the repository contains PyLucene Version 3. You can do this from terminal with the following commend.</p>
 
@@ -27,7 +35,7 @@ layout: default
 <p>And that should do it!</p>
 
   <h3>
-    <a name="linux-installation" class="anchor" href="#linux-installation"><span class="octicon octicon-link"></span></a>Installing the Deb</h3>
+    <a name="dpkg" class="anchor" href="#linux-installation"><span class="octicon octicon-link"></span></a>Installing the Deb</h3>
   
   <p>If your repository doesn't contain PyLucene Version 3, you can do the following. This will download and install the source package, using wget. If you 
   are not running a 64-bit machine, change the link accordingly.</p>
@@ -36,7 +44,7 @@ layout: default
 $ sudo dpkg -i pylucene_3.5.0-1.2_amd64.deb</code></pre>
 
   <h2>
-    <a name="linux-installation" class="anchor" href="#linux-installation"><span class="octicon octicon-link"></span></a>Building PyLucene from Source</h2>
+    <a name="source" class="anchor" href="#linux-installation"><span class="octicon octicon-link"></span></a>Building PyLucene from Source</h2>
   <p>If you are using a distribution of Linux other than Ubuntu/Debian, you'll have to install PyLucene and its dependencies from source. Or, you may 
     simply prefer to build from source. Assuming that you're using Aptitude and that the dependencies are in your repository, install the dependencies
     as follows in the code block below. If you're using another package management system or if the packages are not in your repos, you'll have to edit the 
