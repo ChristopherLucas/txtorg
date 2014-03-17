@@ -127,6 +127,7 @@ def add_metadata_from_csv(searcher,reader,writer,csvfile,args_dir, new_files=Fal
         if new_files:
             print "Adding document {0}".format(filepath)
             add_new_document_with_metadata(writer,filepath,fieldnames,line[1:], args_dir)
+            successful_rows += 1
             continue
 
         # otherwise, look for a document pointing to this filepath in the index. If it's there, update it; otherwise add it.

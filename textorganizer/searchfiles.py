@@ -62,7 +62,6 @@ def run(searcher, analyzer, reader, command, content_field="contents"):
     """check to see whether the user specified a field"""
     m = re.match(r'([a-zA-Z]+):(.*)',command)
     print command
-    print m
     if command == 'all':
         query = MatchAllDocsQuery()
     elif m is None or content_field in command:

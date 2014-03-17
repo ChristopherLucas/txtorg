@@ -434,7 +434,7 @@ class txtorgui:
         tkMessageBox.showerror("Error", message)
 
     def show_message(self,message):
-        tkMessageBox.showinfo("Error", message)
+        tkMessageBox.showinfo("Message", message)
 
     def show_welcome(self,message):
         tkMessageBox.showinfo("Welcome!", message)

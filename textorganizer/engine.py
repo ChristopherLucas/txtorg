@@ -108,6 +108,7 @@ class Worker(threading.Thread):
             return
         self.parent.write({'message': "CSV import complete: %s rows added." % (changed_rows,)})
 
+
     def import_csv_with_content(self, csv_file, content_field):
         try:
             writer = lucene.IndexWriter(lucene.SimpleFSDirectory(lucene.File(self.corpus.path)), self.analyzer, False, lucene.IndexWriter.MaxFieldLength.LIMITED)
@@ -154,7 +155,7 @@ class Worker(threading.Thread):
 
         end_time = datetime.datetime.now()
         self.parent.write({'query_results': (scoreDocs, allTerms, allDicts, termsDocs)})
-        self.parent.write({'status': 'Query completed in %s seconds' % ((end_time - start_time).microseconds*.000001)})
+#        self.parent.write({'status': 'Query completed in %s seconds' % ((end_time - start_time).microseconds*.000001)})
 
     def export_TDM(self, outfile):
         if self.corpus.scoreDocs is None or self.corpus.allTerms is None or self.corpus.allDicts is None:
