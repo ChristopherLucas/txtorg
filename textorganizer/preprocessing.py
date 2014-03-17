@@ -8,9 +8,9 @@ def preprocess(contents, args_dir):
     processed_contents = convert_encodings(contents, args_dir)
     processed_contents = dictionary_replace(processed_contents, args_dir) 
     if args_dir['autocorrect'] == 1:
-        import spellchecker # This is burried here because the script reads in the training 
+        from spellchecker import * # This is burried here because the script reads in the training 
                             # set, and that's super slow (so we don't want to do it if we don't have to)
-        processed_contents = automated_english_spellcheck(processed_contents, args_dir) 
+        processed_contents = automated_english_spellcheck(processed_contents) 
     processed_contents = custom_script(processed_contents, args_dir)
     
     return(processed_contents)
@@ -61,7 +61,9 @@ def dictionary_replace(contents, args_dir):
 def custom_script(contents, args_dir):
     if(type(args_dir['script_filename']) == str):
         script = args_dir['script_filename']
-        execfile(script)
+        with open(script) as f:
+            code = compile(f.read(), script, 'exec')
+            exec(code)
         contents = custom(contents)
         return(contents)
     else:

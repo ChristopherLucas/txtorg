@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
-def automated_english_spellcheck(contents, args_dir):
+import re
+import collections
+
+def automated_english_spellcheck(contents):
     
     tokens = re.findall(r"[\w']+|[.,!?;]", contents)
-    for t in tokens:
+    for t in range(len(tokens)):
         tokens[t] = correct(tokens[t])
     return(' '.join(tokens))
 
