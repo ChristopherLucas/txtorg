@@ -2,7 +2,7 @@
 # This script hold the various preprocessing functions. They fold into indexfiles (for importing whole docs) or 
 # addmetadata (for importing from a CSV)
 
-import chardet, re, collections
+import chardet, re, collections, csv
 
 def preprocess(contents, args_dir):
     processed_contents = convert_encodings(contents, args_dir)

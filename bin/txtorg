@@ -184,8 +184,8 @@ class SaveTDMDialog:
         self.callback = callback
         top = self.top = Toplevel(parent)
         self.choice_var = IntVar()
-        Radiobutton(top, text="CTM format", variable=self.choice_var, value=1).pack(anchor=W)
-        Radiobutton(top, text="STM format", variable=self.choice_var, value=2).pack(anchor=W)
+        Radiobutton(top, text="Delimited STM", variable=self.choice_var, value=1).pack(anchor=W)
+        Radiobutton(top, text="Standard STM (for use with R Package)", variable=self.choice_var, value=2).pack(anchor=W)
         Radiobutton(top, text="Flat CSV file", variable=self.choice_var, value=3).pack(anchor=W)
         b = Button(top, text="OK", command=self.ok)
         b.pack(pady=5)

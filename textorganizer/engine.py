@@ -180,7 +180,6 @@ class Worker(threading.Thread):
             self.parent.write({'error': "No documents selected, please run a query before exporting a TDM."})
             return
 
-        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms, self.searcher, self.reader, outfile, stm_format = True)
         searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms, self.corpus.termsDocs,self.searcher,
                                   self.reader, outfile, True,self.corpus.minVal,self.corpus.maxVal)
         self.parent.write({'message': "TDM exported successfully!"})
