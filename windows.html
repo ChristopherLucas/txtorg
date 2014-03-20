@@ -10,8 +10,8 @@ layout: default
     <li>Install setuptools: Download <a href="https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py">https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py</a> and double-click it! This will install easy_install.exe, which you'll need in step 5.</li>
     <li><a href="http://www.java.com/en/">Install Java</a> (if it's not installed)</li>
     <li>Locate the jvm.dll file (mine is in C:\Program Files (x86)\Java\jre1.6.0_24\bin\client). You'll need this in the next step.</li>
-    <li>Add the dll location and the easy_install location to the Path (easy_install.exe is located for me in C:\Python27\ArcGIS10.2\Scripts). 
-      If you haven't done this before, follow these steps.
+    <li>Add the dll location and the easy_install location to the Path. easy_install.exe is probably located in C:\Python27\Scripts, but if not, use the search box
+      on the Start menu to find it. If you haven't edited the Path variable before, follow these steps to do so.
       <ul>
       <li>From the Desktop, right click on My Computer, click Properties</li>
       <li>Under Advanced System Settings, Environment Variables</li>
@@ -23,8 +23,15 @@ layout: default
     </li>
     <li>Download <a href="/installation/lucene_install.py">this file</a> 
       and double click it</li>
-    <li>Download the zip file in the left sidebar and double-click it. </li>
-    <li> Open the directory where you unzipped the file, go to bin, rename txtorg to txtorg.py, double click it.</li>
+    <li><a href="https://github.com/ChristopherLucas/txtorg/zipball/master">Download the zip file</a> and unzip it. This should create a directory named "ChristopherLucas-txtorg-4dbad8b".</li>
+    <li>Finally, you must install txtorg (as you would any Python package). To <a href="http://docs.python.org/2/install/#standard-build-and-install">install the package</a>,
+      first open a command prompt (Start > All Programs > Accessories > Command Prompt). Next, navigate to the directory "ChristopherLucas-txtorg-4dbad8b". To do so, use the
+      cd command, followed by the full path to the directory. Then, install the package with the command setup.py install. These steps are show in the code block below.</li>
+  
+<pre><code>$ cd this_is_where/I_unzipped_the_file/ChristopherLucas-txtorg-4dbad8b # Navigate to the folder 
+$ setup.py install
+</code></pre>
+    <li>Open the directory where you unzipped the file, go to bin, and rename txtorg to txtorg.py. Double click this file to run txtorg.</li>
   </ol>  
 <p>And that should do it!</p>
 </section>
