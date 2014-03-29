@@ -32,9 +32,11 @@ def convert_encodings(contents, args_dir):
 ###################
 
 def dictionary_replace(contents, args_dir):
+
     if type(args_dir['dict_filename']) == str:
 
         dict_filename = args_dir['dict_filename']
+
         replace_dict = {}
         with open(dict_filename, 'rb') as csvfile:
             cr = csv.reader(csvfile)
@@ -42,12 +44,12 @@ def dictionary_replace(contents, args_dir):
                 replace_dict[row[0].lower()] = row[1].lower()
 
         if args_dir['simple_replace'] == 1:
-            contents = replace_all(contents, replace_dict)
+            contents = replace_all(contents.lower(), replace_dict)
             return(contents)
 
         else: # if simple_replace != 1
             pattern = re.compile(r'\b(' + '|'.join(replace_dict.keys()) + r')\b')
-            contents = pattern.sub(lambda x: replace_dict[x.group()], contents) # replaces whole words only
+            contents = pattern.sub(lambda x: replace_dict[x.group()], contents.lower()) # replaces whole words only
             return(contents)
         
     else: # if dict_filename isn't a string

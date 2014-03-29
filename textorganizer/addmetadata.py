@@ -63,6 +63,7 @@ def add_metadata_to_doc(lucenedoc,fieldnames,values):
 
 def add_new_document_with_metadata(writer,filepath,fieldnames,values, args_dir):
     file = open(filepath)
+
     contents = preprocess(unicode(file.read(), 'UTF-8'), args_dir)
     file.close()
 

@@ -93,6 +93,7 @@ class Worker(threading.Thread):
         indexfiles.IndexFiles(dirname, self.corpus.path, self.analyzer, self.args_dir)
 
     def import_csv(self, csv_file):
+
         try:
             writer = lucene.IndexWriter(lucene.SimpleFSDirectory(lucene.File(self.corpus.path)), self.analyzer, False, 
                                         lucene.IndexWriter.MaxFieldLength.LIMITED)
