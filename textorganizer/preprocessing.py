@@ -33,7 +33,7 @@ def convert_encodings(contents, args_dir):
 
 def dictionary_replace(contents, args_dir):
 
-    if type(args_dir['dict_filename']) == str:
+    if type(args_dir['dict_filename']) == str or type(args_dir['dict_filename']) == unicode:
 
         dict_filename = args_dir['dict_filename']
 
