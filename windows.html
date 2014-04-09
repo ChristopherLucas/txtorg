@@ -4,7 +4,7 @@ layout: default
 <section>
   <h1>
     <a name="windows-installation" class="anchor" href="#windows-installation"><span class="octicon octicon-link"></span></a>Windows installation</h1>
-  <p>To install txtorg on a Windows machine, follow the steps below. </p>
+  <p>To install txtorg on a Windows machine, follow the steps below. If you need to update to the latest version, skip to the next section.</p>
   <ol>
     <li><a href="https://www.python.org/download/releases/2.7.6/">Install Python</a> (ideally 2.7 but definitely not 3.x)</li>
     <li>Install setuptools: Download <a href="https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py">https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py</a> and double-click it! This will install easy_install.exe, which you'll need in step 5.</li>
@@ -35,5 +35,20 @@ $ setup.py install
     <li>Open the directory where you unzipped the file, go to bin, and rename txtorg to txtorg.py. Double click this file to run txtorg.</li>
   </ol>  
 <p>And that should do it!</p>
+
+  <h1>
+    <a name="windows-update" class="anchor" href="#windows-update"><span class="octicon octicon-link"></span></a>Updating Versions on a Windows Machine</h1>
+  
+  <p>txtorg is still in active development, so you may want to update your installation. On a Windows machine, update by following the steps below,</p>
+
+  <ol>
+    <li>Delete the directory containing the current install. You can leave the program files, these will be overwritten.</li>
+    <li><a href="https://github.com/ChristopherLucas/txtorg/zipball/master">Download the zip file</a> and unzip it.</li>
+    <li>From the command line, navigate to the directory created when you unzipped the file. This should contain setup.py. Following the same process used for the initial install, install txtorg.
+    This is shown in the steps below.</li>
+    <pre><code>$ cd this_is_where/I_unzipped_the_file/ChristopherLucas-txtorg-4dbad8b # Navigate to the folder 
+$ setup.py install
+</code></pre>
+  </ol>
 </section>
 
