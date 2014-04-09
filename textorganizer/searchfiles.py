@@ -105,7 +105,7 @@ def filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs):
     # we need to count the dictionaries containing a term, and keep track of the terms to remove
 
     removeTerms = [t for t in termsDocs if (termsDocs[t]<minDocs or termsDocs[t]>maxDocs)]
-    print 'Terms removed = ' + str(removeTerms)
+    print 'Terms removed because of frequency = ' + str(removeTerms)
     # which terms to remove?
     for d in newDicts:
         for t in removeTerms:
