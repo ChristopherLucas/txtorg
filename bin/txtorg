@@ -195,9 +195,12 @@ class SaveTDMDialog:
             ('Comma Separated Variable','*.csv')
             ]
 
-        fileName = tkFileDialog.asksaveasfilename(parent=self.top,filetypes=myFormats ,title="Export TDM as...")
+        fileName = tkFileDialog.asksaveasfilename(parent=self.top,filetypes=myFormats,title="Export TDM as...")
         if fileName == "" or fileName == ():
             return
+
+        if fileName[-4:].lower() != '.csv':
+            fileName = fileName + '.csv'
 
         if self.choice_var.get() == 1:
             self.callback({'ctm': fileName})
