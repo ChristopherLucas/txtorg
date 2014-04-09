@@ -21,10 +21,7 @@ class DictUnicodeWriter(object):
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, D):
-        for k,v in D.items():
-            self.writer.writerow({k:v.encode("utf-8")})
-        # from python27
-        #self.writer.writerow({k:v.encode("utf-8") for k,v in D.items()})
+        self.writer.writerow(D)
 
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
@@ -100,7 +97,7 @@ def run(searcher, analyzer, reader, command, content_field="contents"):
 
 def filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs):
     import copy
-    
+
     newDicts = copy.deepcopy(allDicts)
     newTerms = copy.copy(allTerms)
 
@@ -108,7 +105,7 @@ def filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs):
     # we need to count the dictionaries containing a term, and keep track of the terms to remove
 
     removeTerms = [t for t in termsDocs if (termsDocs[t]<minDocs or termsDocs[t]>maxDocs)]
-    print removeTerms
+    print 'Terms removed = ' + str(removeTerms)
     # which terms to remove?
     for d in newDicts:
         for t in removeTerms:
@@ -193,9 +190,9 @@ def write_metadata(searcher, reader, document_ids, fname):
             df[field.name()] = field.stringValue()
         docFields.append(df)
         allFields = allFields.union(set(df.keys()))
+    
+    fields = [u'name',u'path'] + sorted([x for x in allFields if x not in ['name','path']])
 
-
-    fields = ['name','path'] + sorted([x for x in allFields if x not in ['name','path']])
     with codecs.open(fname, 'w', encoding='UTF-8') as outf:
         dw = DictUnicodeWriter(outf, fields)
 

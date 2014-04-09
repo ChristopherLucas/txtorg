@@ -662,7 +662,7 @@ class txtorgui:
             val = int(sv.get())
         except:
             val = -1
-            self.corpora[self.corpus_idx].minVal = val
+        self.corpora[self.corpus_idx].minVal = val
     def cbmaxVal(self,sv):
         try:
             val = int(sv.get())
