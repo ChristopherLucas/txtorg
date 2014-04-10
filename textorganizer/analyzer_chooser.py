@@ -5,7 +5,7 @@ import math,random
 import os, sys, lucene, thread, time
 from lucene import Version
 
-analyzerlist = ["StopAnalyzer", "SimpleAnalyzer", "WhitespaceAnalyzer", "StandardAnalyzer", "ArabicAnalyzer", "ArmenianAnalyzer", "BasqueAnalyzer", \
+analyzerlist = ["EnglishAnalyzer ", "StopAnalyzer", "SimpleAnalyzer", "WhitespaceAnalyzer", "StandardAnalyzer", "ArabicAnalyzer", "ArmenianAnalyzer", "BasqueAnalyzer", \
      "BulgarianAnalyzer", "BrazilianAnalyzer", "CatalanAnalyzer", "CJKAnalyzer", "CzechAnalyzer", "DanishAnalyzer", "DutchAnalyzer", \
      "FinnishAnalyzer", "FrenchAnalyzer", "GalicianAnalyzer", "GermanAnalyzer", "GreekAnalyzer", "HindiAnalyzer", "HungarianAnalyzer", \
      "IndonesianAnalyzer", "ItalianAnalyzer", "LatvianAnalyzer", "NorwegianAnalyzer", "PersianAnalyzer", "PortugueseAnalyzer", \
