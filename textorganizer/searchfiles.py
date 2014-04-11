@@ -148,8 +148,8 @@ def write_CTM_TDM(scoreDocs, allDicts, allTerms, termsDocs, searcher, reader, fn
 
     print 'Writing vocabulary list...'
     # writes vocab list in format 'termid, term'
-    vocab_lines = [str(termid_dict[term]) + ',' + term for term in l]
-    vocab_output = '\n'.join(['term_id,term'] + vocab_lines)
+    vocab_lines = [term for term in l]
+    vocab_output = '\n'.join(vocab_lines)
     with codecs.open(vocab_filename, 'w', encoding='UTF-8') as outf:
         outf.write(vocab_output.decode('utf8'))
 
