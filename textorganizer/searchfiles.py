@@ -61,14 +61,10 @@ def run(searcher, analyzer, reader, command, content_field="contents"):
     print command
     if command == 'all':
         query = MatchAllDocsQuery()
-    elif m is None or content_field in command:
-        query = QueryParser(Version.LUCENE_CURRENT, content_field, analyzer).parse(command)
+        print 'Query Completed'
     else:
-        """make a TermQuery with the fieldname and value"""
-        fieldname = m.group(1)
-        value = m.group(2)
-        print "Searching for term \"%s\" in field \"%s\"" % (value,fieldname)
-        query = TermQuery(Term(fieldname,value))
+        query = QueryParser(Version.LUCENE_CURRENT, content_field, analyzer).parse(command)
+        print 'Query Completed'
 
     scoreDocs = searcher.search(query, reader.maxDoc()).scoreDocs
 
