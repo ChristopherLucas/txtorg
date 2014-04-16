@@ -12,31 +12,59 @@ layout: default
   to name it. You may put the corpus wherever you like. Note that spaces and underscores will be removed from names, so choose accordingly.</p>
   <h1>
     <a name="import-documents" class="anchor" href="#create-a-corpus"><span class="octicon octicon-link"></span></a>Import Documents</h1>
-  <p>Next, you must import documents. This section lays out the various formatting and import options. 
+  <p>Next, you must import documents. This section lays out the
+  various formatting and import options. After importing documents,
+  you must select the corpus, then click 'Corpus -> Rebuild Index
+  File'.</p>
 
   <h3>
     <a name="formatting" class="anchor" href="#formatting"><span class="octicon octicon-link"></span></a>Formatting Requirements</h3>
-  <p>To import documents, click on the corpus to which you want to import documents (in the leftmost 'Corpus' window). It should be highlighted.
+  <p>To import documents, click on the corpus to which you want to import documents (in the leftmost 'Corpus' window). The corpus should be highlighted.
   Then, click 'Corpus' -> 'Import Documents'. You'll be shown a window labeled 'SELECT PREPROCESSING OPTIONS', at the bottom of which, you select
-  the 'Corpus Format'.</p>
+  the 'Corpus Format'. Note that the txtorg installation contains examples for all three import options, noted in the following paragraphs. The example
+  is composed of quotations from The Brothers Karamazov, and their corresponding books and chapters.</p>
 
   <p>The first import format option is 'Import an entire directory'. If you'd like to import all documents in a directory and any child directory
-    located within it, select this option. Note that these files must be .txt files, txtorg will skip all other file extensions but will import
-    every .txt file located within the directory. In addition, this import option does not support metadata.</p>
+    located within it, select this option. Note that these documents must be .txt files, txtorg will skip all other file extensions but will import
+    every .txt file located within the directory. Note this import option does not support metadata. An example of this import format can be found
+    in the 'examples/brothersk/' directory contained in the zip file used to install txtorg.</p>
 
   <p>The second import format option is 'Import from a CSV file (not including content)'. In this format, files are uploaded
   with a csv, where the first column is 'filepaths' pointing to all of the documents that are the be uploaded. The remaining 
-  columns in the csv are metadata fields, such as author name or date.</p>
+  columns in the csv are metadata fields, such as author name or date. In the installation directory, '/examples/brothersk_without_content.csv'
+  displays this import format. This file is also shown below. Note that txtorg cannot recognize relative directory paths (such as those 
+  using a period to signify the current directory) on some operating systems, and thus to upload the example corpus with this CSV, you must 
+  edit the paths accordingly.</p>
 
-  <p>The third import format option is 'Import from a CSV file (including content). In this format, the documents are
+<pre><code>filepath, book, chapter
+./examples/brothersk/1.txt,2,2
+./examples/brothersk/2.txt,2,5
+./examples/brothersk/3.txt,2,7
+./examples/brothersk/4.txt,3,3
+./examples/brothersk/5.txt,3,9
+./examples/brothersk/6.txt,4,3
+./examples/brothersk/7.txt,4,8
+./examples/brothersk/8.txt,4,8
+./examples/brothersk/9.txt,7,3</code></pre>
+
+
+  <p>The third import format option is 'Import from a CSV file (including content)'. In this format, the documents are
   represented as a field in the csv, where the values are the actual text of the corpus, and the other columns again correspond
   to document metadata.</p>
 
+  <p>IMPORTANT: After importing documents, you must select the corpus, then click 'Corpus -> Rebuild Index File'.</p>
+
   <h3>
     <a name="encodings" class="anchor" href="#encodings"><span class="octicon octicon-link"></span></a>Encodings</h3>
-  
+  <p>txtorg supports a wide range of encodings through the <a href="https://pypi.python.org/pypi/chardet">Chardet</a> library in Python.
+  Those encodings can be seen in full in the encodings drop down menu on the import documents menu. In general, UTF-8 is preferable, in the event
+  that you have a choice. If you select 'Automatically Detect Encodings', txtorg will guess the encodings of your corpus, with some error. Note that
+  the corpus must be in one encoding, so txtorg will fail if you ask it to detect the encodings of a corpus containing multiple encodings.</p>
+
   <h3>
     <a name="dictionary" class="anchor" href="#dictionary"><span class="octicon octicon-link"></span></a>Dictionary Replacement</h3>
+  <a></a>
+
   <h3>
     <a name="custom" class="anchor" href="#custom"><span class="octicon octicon-link"></span></a>Custom Python Script</h3>
   <h3>
