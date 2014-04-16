@@ -108,7 +108,7 @@ Just know one thing Rakitka I may be wicked but still I gave an onion,7,3</code>
   <p>txtorg supports this sort of preprocessing by allowing the user to upload a two-column CSV, where the first column is the string
     that is to be replaced and the second column is the term with which it is to be replaced. 'examples/replace_dict.csv' displays a 
     simple example for use with the included Brothers Karamozov corpus. This example is displayed below, which will replace all occurences
-    of the term ;karamozov' with 'smerdyakov' (another character name).</p>
+    of the term 'karamozov' with 'smerdyakov' (another character name).</p>
 
   <pre><code>karamazov,smerdyakov</pre></code>
 
@@ -122,11 +122,19 @@ Just know one thing Rakitka I may be wicked but still I gave an onion,7,3</code>
 
   <h3>
     <a name="custom" class="anchor" href="#custom"><span class="octicon octicon-link"></span></a>Custom Python Script</h3>
-  <p></p>
-
-
+  <p>txtorg supports custom preprocessing scripts written in Python. You may wish to run your documents through a script 
+  of your own to remove markup or to do some sort of unsupported preprocessing. If so, select 'Select Python script' and 
+  select the Python script you'd like to run on your corpus. Txtorg will read the script, then will call a function 'custom()'
+  on each document before adding it to the corpus. Thus, your script must contain a function 'custom()', which must take as 
+  input a document (type str) and output a preprocessed document (also type str). All preprocessing must occur within the function
+  'custom()', so you may wish to write your preprocessing functions as separate functions, then wrap them in a function named 'custom()'.
+  However, we leave this up to the user, as the main point of this functionality is flexibility!</p>
+  
   <h3>
     <a name="spellcheck" class="anchor" href="#spellcheck"><span class="octicon octicon-link"></span></a>Automated Spelling Correction</h3>
+  <p>txtorg supports automated spellchecking in English. The spellchecker is quite rudimentary, so you ought not use it if your corpus 
+  has a number of proper nouns or other complicated terms. However, if you'd like to run it, simply select the corresponding radio button
+  and incorrectly spelled words will be replaced by their correct counterparts.</p>
 
   <h1>
     <a name="analyzer-selection" class="anchor" href="#analyzer-selection"><span class="octicon octicon-link"></span></a>Analyzer Selection (Specify Non-English Language)</h1>
