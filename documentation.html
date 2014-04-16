@@ -99,10 +99,32 @@ Just know one thing Rakitka I may be wicked but still I gave an onion,7,3</code>
 
   <h3>
     <a name="dictionary" class="anchor" href="#dictionary"><span class="octicon octicon-link"></span></a>Dictionary Replacement</h3>
-  <a></a>
+  <p>Often, corpora contain terms that you may with to replace with another, either for cleaning purposes, or because you'd like to
+  index a phrase. For example, an investigator may be interested in occurences of the term "Foreign Aid", rather than simply the terms
+  "foreign" and "aid". Because txtorg only indexes unigrams, to include n-grams (n > 1) in the final TDM, an investigator should
+  combine the n-grams of interest into a single token. For example, "foreign aid" becomes "foreignaid". The investigator can then 
+  use this combined term to measure frequencies of the phrase "foreign aid".</p>
+
+  <p>txtorg supports this sort of preprocessing by allowing the user to upload a two-column CSV, where the first column is the string
+    that is to be replaced and the second column is the term with which it is to be replaced. 'examples/replace_dict.csv' displays a 
+    simple example for use with the included Brothers Karamozov corpus. This example is displayed below, which will replace all occurences
+    of the term ;karamozov' with 'smerdyakov' (another character name).</p>
+
+  <pre><code>karamazov,smerdyakov</pre></code>
+
+  <p>IMPORTANT: Note that the csv must be lower case, even if the terms that are to be replaced contain upper case letters.</p>
+
+  <p>You'll note that there is a 'Simple replace' option in the window. If selected, all occurences of the terms in the 
+    first column will be replaced with those in the second column. If not selected, txtorg will first tokenize the documents, then
+    replace occurences of the tokens in the first column with those in the second. Thus, if you want to replace bi- or tri-grams 
+    with a single term, select 'Simple replace'. However, this option is prone to false positives for simpler terms, so think
+  carefully about the implications of both options.</p>
 
   <h3>
     <a name="custom" class="anchor" href="#custom"><span class="octicon octicon-link"></span></a>Custom Python Script</h3>
+  <p></p>
+
+
   <h3>
     <a name="spellcheck" class="anchor" href="#spellcheck"><span class="octicon octicon-link"></span></a>Automated Spelling Correction</h3>
 
