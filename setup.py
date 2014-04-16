@@ -6,8 +6,8 @@ except ImportError:
 setup(
     name='TxtOrg',
     version='0.1.0',
-    author='Dustin Tingley',
-    author_email='dtingley@gov.harvard.edu',
+    author='Christopher Lucas',
+    author_email='lucas.christopherd@gmail.com',
     packages=['textorganizer'],
     scripts=['bin/txtorg'],
 #    package_data={'textorganizer': ['training_text.txt']},
