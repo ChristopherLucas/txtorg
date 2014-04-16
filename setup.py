@@ -6,7 +6,7 @@ except ImportError:
 setup(
     name='TxtOrg',
     version='0.1.0',
-    author='Christopher Lucas',
+    author='Christopher Lucas, Alex Storer, Dustin Tingley',
     author_email='lucas.christopherd@gmail.com',
     packages=['textorganizer'],
     scripts=['bin/txtorg'],
