@@ -198,12 +198,25 @@ Just know one thing Rakitka I may be wicked but still I gave an onion,7,3</code>
 
   <h1>
     <a name="export-tdm" class="anchor" href="#export-tdm"><span class="octicon octicon-link"></span></a>Export TDM</h1>
+  <p>After you have selected the documents you want, you can export the documents as a document-term matrix or you can 
+    export the full documents in their unprocessed form.</p>
+  
   <h3>
     <a name="termfreq" class="anchor" href="#termfreq"><span class="octicon octicon-link"></span></a>Filter On Term Frequency</h3>
+  <p>txtorg supports constraining the document-term matrix to terms within a user-specified frequency range. That is, users
+    may bound the document-term matrix to terms that appear at least a certain number of times but no more than a specified number 
+    of times. To do so, in the rightmost window, simply enter the lower bound and the upper bound in the boxes for 'at least' and 
+  'at most'. By default, these values indicate the least and most documents a term appears in.</p> 
+
   <h3>
     <a name="format" class="anchor" href="#format"><span class="octicon octicon-link"></span></a>TDM Format</h3>
+  <p>Next, you must click 'Export TDM'. The user will be asked to select one of three formats. 'Standard STM' is the 
+    Blei et al format, also used in the STM package for R. Delimited STM is the same, but the sparse matrix is delimited
+    by commas, rather than spaces. And 'Flat CSV file' is simply a standard CSV.
+
   <h3>
     <a name="exportfull" class="anchor" href="#exportfull"><span class="octicon octicon-link"></span></a>Export Full Documents</h3>
+  <p>To export the full documents, simply click 'Export Files'.</p>
 
   <h1>
     <a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>Example</h1>
