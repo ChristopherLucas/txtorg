@@ -208,23 +208,22 @@ Just know one thing Rakitka I may be wicked but still I gave an onion,7,3</code>
 <pre class="code">book:2 AND karamozov</pre>
 </ul>
         
-<h4 class="boxed">Term Modifiers</h4>
-<p>Lucene supports modifying query terms to provide a wide range of searching options.</p>
-<a name="N10076"></a><a name="Wildcard Searches"></a>
-<h3 class="boxed">Wildcard Searches</h3>
+<h4 class="boxed">Wildcard Searches</h4>
 <p>Lucene supports single and multiple character wildcard searches within single terms
         (not within phrase queries).</p>
-<p>To perform a single character wildcard search use the "?" symbol.</p>
-<p>To perform a multiple character wildcard search use the "*" symbol.</p>
-<p>The single character wildcard search looks for terms that match that with the single character replaced. For example, to search for "text" or "test" you can use the search:</p>
+<ul>
+<li>To perform a single character wildcard search use the "?" symbol.</li>
+<li>To perform a multiple character wildcard search use the "*" symbol.</li>
+<li>The single character wildcard search looks for terms that match that with the single character replaced. For example, to search for "text" or "test" you can use the search:</li>
 <pre class="code">te?t</pre>
-<p>Multiple character wildcard searches looks for 0 or more characters. For example, to search for test, tests or tester, you can use the search: </p>
+<li>Multiple character wildcard searches looks for 0 or more characters. For example, to search for test, tests or tester, you can use the search: </li>
 <pre class="code">test*</pre>
-<p>You can also use the wildcard searches in the middle of a term.</p>
+<li>You can also use the wildcard searches in the middle of a term.</li>
 <pre class="code">te*t</pre>
-<p>Note: You cannot use a * or ? symbol as the first character of a search.</p>
+<li>Note: You cannot use a * or ? symbol as the first character of a search.</li>
+</ul>
 <a name="N1009B"></a><a name="Fuzzy Searches"></a>
-<h3 class="boxed">Fuzzy Searches</h3>
+<h4 class="boxed">Fuzzy Searches</h4>
 <p>Lucene supports fuzzy searches based on the Levenshtein Distance, or Edit Distance algorithm. To do a fuzzy search use the tilde, "~", symbol at the end of a Single word Term. For example to search for a term similar in spelling to "roam" use the fuzzy search: </p>
 <pre class="code">roam~</pre>
 <p>This search will find terms like foam and roams.</p>
