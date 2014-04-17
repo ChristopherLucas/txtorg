@@ -186,52 +186,7 @@ Just know one thing Rakitka I may be wicked but still I gave an onion,7,3</code>
     <a name="complicated" class="anchor" href="#complicated"><span class="octicon octicon-link"></span></a>More Complicated Searches</h3>
   <p>Because txtorg supports all lucene queries, users may input more
     complicated searches. Any valid lucene query may be used. Below are
-    some syntax rules for lucene queries.  
-
-    <h4>Boolean operators</h4>
-p>Although Lucene provides the ability to create your own
-            queries through its API, it also provides a rich query
-            language through the Query Parser, a lexer which
-            interprets a string into a Lucene Query using JavaCC.
-	    </p>
-<p>Generally, the query parser syntax may change from
-	    release to release.  This page describes the syntax as of
-	    the current release.  If you are using a different
-	    version of Lucene, please consult the copy of
-	    <span class="codefrag">docs/queryparsersyntax.html</span> that was distributed
-	    with the version you are using.
-	    </p>
-<p>
-            Before choosing to use the provided Query Parser, please consider the following:
-            <ol>
-            
-<li>If you are programmatically generating a query string and then
-            parsing it with the query parser then you should seriously consider building
-            your queries directly with the query API.  In other words, the query
-            parser is designed for human-entered text, not for program-generated
-            text.</li>
-
-            
-<li>Untokenized fields are best added directly to queries, and not
-            through the query parser.  If a field's values are generated programmatically
-            by the application, then so should query clauses for this field.
-            An analyzer, which the query parser uses, is designed to convert human-entered
-            text to terms.  Program-generated values, like dates, keywords, etc.,
-            should be consistently program-generated.</li>
-
-            
-<li>In a query form, fields which are general text should use the query
-            parser.  All others, such as date ranges, keywords, etc. are better added
-            directly through the query API.  A field with a limit set of values,
-            that can be specified with a pull-down menu should not be added to a
-            query string which is subsequently parsed, but rather added as a
-            TermQuery clause.</li>
-            
-</ol>
-            
-</p>
-</div>
-
+    some syntax rules for lucene queries.</p>
         
 <a name="N10032"></a><a name="Terms"></a>
 <h2 class="boxed">Terms</h2>
