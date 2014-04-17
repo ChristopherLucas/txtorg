@@ -198,22 +198,22 @@ Just know one thing Rakitka I may be wicked but still I gave an onion,7,3</code>
         So it is important to choose an analyzer that will not interfere with the terms used in the query string.</li>
 </ul>
         
-<a name="N10048"></a><a name="Fields"></a>
-<h2 class="boxed">Fields</h2>
-<div class="section">
-<p>Lucene supports fielded data. When performing a search you can either specify a field, or use the default field. The field names and default field is implementation specific.</p>
-<p>You can search any field by typing the field name followed by a colon ":" and then the term you are looking for. </p>
-<p>As an example, let's assume a Lucene index contains two fields, title and text and text is the default field.
-        If you want to find the document entitled "The Right Way" which contains the text "don't go this way", you can enter: </p>
+<h4 class="boxed">Fields</h4>
+<p>Lucene supports fielded (meta) data. When performing a search you
+  can either specify a field, or use the default field (the content of
+  the document).</p>
+<ul>
+<li>You can search any field by typing the field name followed by a colon ":" and then the term you are looking for. </li>
+<li>As an example, let's assume a Lucene index contains two fields, title and text and text is the default field.
+        If you want to find the document entitled "The Right Way" which contains the text "don't go this way", you can enter: </li>
 <pre class="code">title:"The Right Way" AND text:go</pre>
 <p>or</p>
 <pre class="code">title:"Do it right" AND right</pre>
-<p>Since text is the default field, the field indicator is not required.</p>
-<p>Note: The field is only valid for the term that it directly precedes, so the query</p>
+<li>Since text is the default field, the field indicator is not required.</li>
+<li>Note: The field is only valid for the term that it directly precedes, so the query</li>
 <pre class="code">title:Do it right</pre>
-<p>Will only find "Do" in the title field. It will find "it" and "right" in the default field (in this case the text field). </p>
-</div>
-
+<li>Will only find "Do" in the title field. It will find "it" and "right" in the default field (in this case the text field). </li>
+</ul>
         
 <a name="N1006D"></a><a name="Term Modifiers"></a>
 <h2 class="boxed">Term Modifiers</h2>
