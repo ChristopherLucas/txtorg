@@ -204,15 +204,8 @@ Just know one thing Rakitka I may be wicked but still I gave an onion,7,3</code>
   the document).</p>
 <ul>
 <li>You can search any field by typing the field name followed by a colon ":" and then the term you are looking for. </li>
-<li>As an example, let's assume a Lucene index contains two fields, title and text and text is the default field.
-        If you want to find the document entitled "The Right Way" which contains the text "don't go this way", you can enter: </li>
-<pre class="code">title:"The Right Way" AND text:go</pre>
-<p>or</p>
-<pre class="code">title:"Do it right" AND right</pre>
-<li>Since text is the default field, the field indicator is not required.</li>
-<li>Note: The field is only valid for the term that it directly precedes, so the query</li>
-<pre class="code">title:Do it right</pre>
-<li>Will only find "Do" in the title field. It will find "it" and "right" in the default field (in this case the text field). </li>
+<li>As an example, let's search for documents in the second book containing the term 'karamazov'.</li>
+<pre class="code">book:2 AND karamozov</pre>
 </ul>
         
 <a name="N1006D"></a><a name="Term Modifiers"></a>
