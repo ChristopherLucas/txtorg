@@ -9,20 +9,20 @@ layout: default
     process into a single piece of software.</p>
 
   <p>To create a new corpus, click 'File' -> 'New Corpus'. You will be prompted to choose a directory in which to save the corpus, and then 
-  to name it. You may put the corpus wherever you like. Note that spaces and underscores will be removed from names, so choose accordingly.</p>
+  to name it. You may put the corpus wherever you like. The corpus name may only contain alphanumeric characters.</p>
   <h1>
     <a name="import-documents" class="anchor" href="#create-a-corpus"><span class="octicon octicon-link"></span></a>Import Documents</h1>
   <p>Next, you must import documents. This section lays out the
-  various formatting and import options. After importing documents,
-  you must select the corpus, then click 'Corpus -> Rebuild Index
-  File'.</p>
+  various formatting and import options and concludes with example
+  scripts demonstrating the construction of files that can be used to 
+  import documents into txtorg.</p>
 
   <h3>
     <a name="formatting" class="anchor" href="#formatting"><span class="octicon octicon-link"></span></a>Formatting Requirements</h3>
-  <p>To import documents, click on the corpus to which you want to import documents (in the leftmost 'Corpus' window). The corpus should be highlighted.
+  <p>To import documents, click on the corpus to which you want to import documents (in the leftmost 'Corpus' frame). The corpus should be highlighted.
   Then, click 'Corpus' -> 'Import Documents'. You'll be shown a window labeled 'SELECT PREPROCESSING OPTIONS', at the bottom of which, you select
   the 'Corpus Format'. Note that the txtorg installation contains examples for all three import options, noted in the following paragraphs. The example
-  is composed of excerpts from The Brothers Karamazov (now public domain) and books and chapters to which those excerpts belong.</p>
+  is composed of excerpts from The Brothers Karamazov (now public domain) and books and chapters to which those excerpts belong (metadata).</p>
 
   <p>The first import format option is 'Import an entire directory'. If you'd like to import all documents in a directory and any child directory
     located within it, select this option. Note that these documents must be .txt files, txtorg will skip all other file extensions but will import
@@ -37,15 +37,15 @@ layout: default
   edit the paths accordingly.</p>
 
 <pre><code>filepath,book,chapter
-./examples/brothersk/1.txt,2,2
-./examples/brothersk/2.txt,2,5
-./examples/brothersk/3.txt,2,7
-./examples/brothersk/4.txt,3,3
-./examples/brothersk/5.txt,3,9
-./examples/brothersk/6.txt,4,3
-./examples/brothersk/7.txt,4,8
-./examples/brothersk/8.txt,4,8
-./examples/brothersk/9.txt,7,3</code></pre>
+[full_path_to_directory]/examples/brothersk/1.txt,2,2
+[full_path_to_directory]/examples/brothersk/2.txt,2,5
+[full_path_to_directory]/examples/brothersk/3.txt,2,7
+[full_path_to_directory]/examples/brothersk/4.txt,3,3
+[full_path_to_directory]/examples/brothersk/5.txt,3,9
+[full_path_to_directory]/examples/brothersk/6.txt,4,3
+[full_path_to_directory]/examples/brothersk/7.txt,4,8
+[full_path_to_directory]/examples/brothersk/8.txt,4,8
+[full_path_to_directory]/examples/brothersk/9.txt,7,3</code></pre>
 
 
   <p>The third import format option is 'Import from a CSV file (including content)'. In this format, the documents are
@@ -67,6 +67,150 @@ Just know one thing Rakitka I may be wicked but still I gave an onion,7,3</code>
 
   <p>IMPORTANT: After importing documents, you must select the corpus, then click 'Corpus -> Rebuild Index File'. Also, note that in the examples above, both
   the second and the third import options yield the same corpus, while the first is identical except it has no metadata.</p>
+
+
+  <h3>
+    <a name="building-csv" class="anchor" href="#building-csv"><span class="octicon octicon-link"></span></a>Building an Import CSV</h3>
+  
+  <p>To import a corpus with metadata, you must construct a CSV like the
+  two outlined in the previous section. To demonstrate how users might 
+  make appropriate import CSVs, we provide examples in R and Python.
+  For both examples, we scrape the Brothers Karamazov corpus from the
+  web, then write it to the working directory in a format commonly used
+  to denote metadata. Specifically, metadata is denoted in the filename.
+  There are two metadata fields, the book and chapter in which the selected
+  quotation can be found. The files are named [BOOK]_[CHAPTER].txt, where
+  [BOOK] and [CHAPTER] denote the respective values for the particular
+  document.</p>
+
+  <p>You can of course construct the CSV by whatever method you find 
+    most convenient, and you need only write one CSV. Our examples, in R
+    and Python, write a CSV for importing with filenames and another
+    for importing from a CSV that contains the actual documents.</p>
+
+  <h4>Constructing an Import CSV with R</h4>
+
+<pre><code>library('XML')
+
+###################################
+# SCRAPE CORPUS AND WRITE TO DISK #
+###################################
+
+base.url <- 'http://www.christopherlucas.org/data'
+
+# Get links to docs
+links.page <- paste(base.url, 'brothersk', sep = '/')
+page <- htmlParse(links.page)
+links <- getHTMLLinks(page)
+
+# Create the directory structure, scrape the corpus, and write it to the disk
+dir.create('scraped_docs')
+setwd('./scraped_docs')
+dir.create('4_8')
+for(link in links){
+    write(xpathSApply(
+        htmlParse(paste(base.url, link, sep = '/')), '///p', xmlValue
+        ),
+          link)
+}
+
+###############################################
+# FROM CORPUS ON DISK, MAKE TXTORG IMPORT CSV #
+###############################################
+
+files <- list.files(path = getwd(), recursive = TRUE)
+
+# Import without content
+m <- c()
+for(file in files){
+    book <- substr(file, 1, 1)
+    chapter <- substr(file, 3, 3)
+    m <- rbind(m, c(paste(getwd(), file, sep = '/'), book, chapter))
+}
+colnames(m) <- c('filename', 'book', 'chapter')
+write.csv(m, 'txtorgCSV_without_content.csv', quote=FALSE, row.names = FALSE)
+
+# Import with content in csv
+m <- c()
+for(file in files){
+    book <- substr(file, 1, 1)
+    chapter <- substr(file, 3, 3)
+    content <- readLines(file)[1]
+    m <- rbind(m, c(content, book, chapter))
+}
+colnames(m) <- c('content','book','chapter')
+write.csv(m, 'txtorgCSV_with_content.csv', quote=FALSE, row.names = FALSE)</pre></code>
+
+  <h4>Constructing an Import CSV with Python</h4>
+
+<pre><code>import urllib2 
+import lxml
+from lxml import html
+import os
+import csv
+import re
+
+###################################
+# SCRAPE CORPUS AND WRITE TO DISK #
+###################################
+
+base_url = 'http://www.christopherlucas.org/data/'
+
+# Get links to docs
+page = urllib2.urlopen(base_url + 'brothersk')
+content = page.read()
+page.close()
+
+html = lxml.html.fromstring(content)
+links = [i[2] for i in html.iterlinks()]
+
+os.makedirs('corpus/4_8')
+os.chdir('corpus')
+
+for link in links:
+    page = urllib2.urlopen(base_url + link)
+    content = page.read()
+    page.close()
+
+    f = open(link, 'w')
+    f.write(content)
+    f.close()
+
+###############################################
+# FROM CORPUS ON DISK, MAKE TXTORG IMPORT CSV #
+###############################################
+    
+# Import without content
+f = open('txtorgCSV_without_content.csv','w')
+names = ['filename', 'book', 'chapter']
+dw = csv.DictWriter(f, names)
+dw.writerow({k:k for k in names})
+for root, dirnames, filenames in os.walk('.'):
+    for filename in filenames:
+        if not filename.endswith('.txt'):
+            continue
+        book = filename[0]
+        chapter = filename[2]
+        fname = os.getcwd() + filename
+        dw.writerow({'filename':fname, 'book':book, 'chapter':chapter})
+f.close()
+
+# Import with content in csv
+f = open('txtorgCSV_with_content.csv','w')
+names = ['content', 'book', 'chapter']
+dw = csv.DictWriter(f, names)
+dw.writerow({k:k for k in names})
+for root, dirnames, filenames in os.walk('.'):
+    for filename in filenames:
+        if not filename.endswith('.txt'):
+            continue
+        book = filename[0]
+        chapter = filename[2]
+        open_doc = open(root + '/' + filename, 'r')
+        content = open_doc.read().rstrip()
+        open_doc.close()        
+        dw.writerow({'content':content, 'book':book, 'chapter':chapter})
+f.close()</pre></code>
 
   <h3>
     <a name="encodings" class="anchor" href="#encodings"><span class="octicon octicon-link"></span></a>Encodings</h3>
