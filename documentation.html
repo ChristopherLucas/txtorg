@@ -351,20 +351,30 @@ f.close()</pre></code>
   
   <h3>
     <a name="termfreq" class="anchor" href="#termfreq"><span class="octicon octicon-link"></span></a>Filter On Term Frequency</h3>
-  <p>txtorg supports constraining the document-term matrix to terms within a user-specified frequency range. That is, users
-    may bound the document-term matrix to terms that appear at least a certain number of times but no more than a specified number 
-    of times. To do so, in the rightmost window, simply enter the lower bound and the upper bound in the boxes for 'at least' and 
-  'at most'. By default, these values indicate the least and most documents a term appears in.</p> 
+  <p>Infrequent and extremely frequent words often provide little
+    additional information and can be stripped from the TDM. To do
+    this, txtorg supports constraining the document-term matrix to
+    terms within a user-specified frequency range. That is, users may
+    bound the document-term matrix to terms that appear at least a
+    certain number of times but no more than a specified number of
+    times. To do so, in the rightmost window, simply enter the lower
+    bound and the upper bound in the boxes for 'at least' and 'at
+    most'. By default, these values indicate the least and most
+    documents a term appears in.</p>
 
   <h3>
     <a name="format" class="anchor" href="#format"><span class="octicon octicon-link"></span></a>TDM Format</h3>
   <p>Next, you must click 'Export TDM'. The user will be asked to select one of three formats. 'Standard STM' is the 
-    Blei et al format, also used in the STM package for R. Delimited STM is the same, but the sparse matrix is delimited
-    by commas, rather than spaces. And 'Flat CSV file' is simply a standard CSV.
+    Blei et al format, also used in the STM package for R. If you intend to read the TDM into a topic modeling package, you 
+    probably want this format. Delimited STM is the same, but the sparse matrix is delimited
+    by commas, rather than spaces. And 'Flat CSV file' is simply a standard CSV, which you might want for simpler applications
+    with just a few documents, or in rare occasions where the matrix is not sparse.</p> 
 
   <h3>
     <a name="exportfull" class="anchor" href="#exportfull"><span class="octicon octicon-link"></span></a>Export Full Documents</h3>
-  <p>To export the full documents, simply click 'Export Files'.</p>
+  <p>To export the full documents, simply click 'Export Files'. This can be especially helpful if you'd like to back out the full
+  text associated with a row in the document-term matrix. For instance, you may want to use this with the plotQuote() function in 
+  the stm package.</p>
 
   <h1>
     <a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>Example</h1>
