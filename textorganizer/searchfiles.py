@@ -21,9 +21,10 @@ class DictUnicodeWriter(object):
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, D):
-        print({k:v.encode("utf-8") for k,v in D.items()})
-        return()
+#        self.writer.writerow({k:v.encode("utf-8") for k,v in D.items()})
     
+        self.writer.writerow(dict((k:v.encode("utf-8")), for k, v in D.items()))
+
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
         data = data.decode("utf-8")
