@@ -24,7 +24,7 @@ def convert_encodings(contents, args_dir):
         if encoding != 'utf-8':
             contents = contents.decode(encoding, 'replace').encode('utf-8')
     else:
-        contents = contents.decode(args_dir['encodings'], 'replace').encode('utf-8')
+        contents = contents
     
     return(contents)
 
