@@ -23,7 +23,8 @@ class DictUnicodeWriter(object):
     def writerow(self, D):
 #        self.writer.writerow({k:v.encode("utf-8") for k,v in D.items()})
     
-        test = dict((k:v)) for k, v in D.items()
+        for k, v in D.items():
+            print k, v
         self.writer.writerow(test)
 
         # Fetch UTF-8 output from the queue ...
