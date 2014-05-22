@@ -25,7 +25,7 @@ class DictUnicodeWriter(object):
     
         row = {}
         for k, v in D.items():
-            row{k:v.encode("utf-8")}
+            row[k] = v.encode("utf-8")
 
         print(row)
         # Fetch UTF-8 output from the queue ...
