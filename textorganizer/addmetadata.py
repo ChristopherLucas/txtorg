@@ -64,7 +64,10 @@ def add_metadata_to_doc(lucenedoc,fieldnames,values):
 def add_new_document_with_metadata(writer,filepath,fieldnames,values, args_dir):
     file = open(filepath)
 
-    contents = preprocess(unicode(file.read(), 'UTF-8'), args_dir)
+    contents = unicode(file.read(), 'UTF-8')
+    print contents
+    contents = preprocess(contents, args_dir)
+    print contents
     file.close()
 
     doc = Document()
@@ -99,7 +102,10 @@ def add_new_document_with_metadata_and_content(writer, fieldnames, values, conte
 
     for idx, name in enumerate(fieldnames):
         if name == content_field: 
-            contents = preprocess(values[idx].lower(), args_dir)
+            contents = values[idx].lower()
+            print contents
+            contents = preprocess(contents, args_dir)
+            print contents
             doc.add(Field(fieldnames[idx].lower(),contents,Field.Store.YES,Field.Index.ANALYZED,Field.TermVector.YES))
         else:
             doc.add(Field(fieldnames[idx].lower(),values[idx].lower(),Field.Store.YES,Field.Index.NOT_ANALYZED))
