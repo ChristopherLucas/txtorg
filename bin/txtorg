@@ -220,7 +220,8 @@ class FieldSelectDialog:
         Label(top, text="Choose the field containing text data to index:").pack()
 
         with codecs.open(csv_file, 'r', encoding='UTF-8') as inf:
-            csvreader = csv.reader(inf, delimiter=',', quotechar='"')
+            csvreader = csv.reader(self.utf_8_encoder(inf), delimiter=',', quotechar='"')
+            
             self.fieldnames = csvreader.next()
 
         self.fieldname_listbox = Listbox(top)
@@ -238,6 +239,10 @@ class FieldSelectDialog:
         if len(sel) == 1:
             self.callback(self.fieldnames[int(sel[0])])
             self.top.destroy()
+
+    def utf_8_encoder(self, unicode_csv_data):
+        for line in unicode_csv_data:
+            yield line.encode('utf-8')
 
 class EntryDialog:
     def __init__(self, parent, callback, label="Enter a value:"):
