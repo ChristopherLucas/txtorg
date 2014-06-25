@@ -65,7 +65,7 @@ def add_new_document_with_metadata(writer,filepath,fieldnames,values, args_dir):
     file = open(filepath)
 
     contents = unicode(file.read(), 'UTF-8')
-    contents = preprocess(contents, args_dir)
+#    contents = preprocess(contents, args_dir)
     file.close()
 
     doc = Document()
@@ -101,7 +101,7 @@ def add_new_document_with_metadata_and_content(writer, fieldnames, values, conte
     for idx, name in enumerate(fieldnames):
         if name == content_field: 
             contents = values[idx].lower()
-            contents = preprocess(contents, args_dir)
+#            contents = preprocess(contents, args_dir)
             doc.add(Field(fieldnames[idx].lower(),contents,Field.Store.YES,Field.Index.ANALYZED,Field.TermVector.YES))
         else:
             doc.add(Field(fieldnames[idx].lower(),values[idx].lower(),Field.Store.YES,Field.Index.NOT_ANALYZED))
