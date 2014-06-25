@@ -221,8 +221,8 @@ class FieldSelectDialog:
 
         with codecs.open(csv_file, 'r', encoding='UTF-8') as inf:
             csvreader = csv.reader(self.utf_8_encoder(inf), delimiter=',', quotechar='"')
-            
             self.fieldnames = csvreader.next()
+            self.fieldnames = [unicode(name, 'utf-8') for name in self.fieldnames]
 
         self.fieldname_listbox = Listbox(top)
         self.fieldname_listbox.pack()
