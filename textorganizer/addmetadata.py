@@ -65,9 +65,7 @@ def add_new_document_with_metadata(writer,filepath,fieldnames,values, args_dir):
     file = open(filepath)
 
     contents = unicode(file.read(), 'UTF-8')
-    print(type(contents)
     contents = preprocess(contents, args_dir)
-    print(type(contents)
     file.close()
 
     doc = Document()
