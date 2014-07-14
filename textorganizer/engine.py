@@ -1,6 +1,16 @@
 import Queue
 import threading
 import lucene
+try:
+    from lucene import SimpleFSDirectory, StandardAnalyzer, Version, IndexSearcher, File
+except:
+    from org.apache.lucene.store import SimpleFSDirectory
+    from org.apache.lucene.analysis.standard import StandardAnalyzer
+    from org.apache.lucene.util import Version
+    from org.apache.lucene.search import IndexSearcher
+    from org.apache.lucene.index import IndexWriter
+    from java.io import File
+
 import codecs
 import datetime
 import os
@@ -19,18 +29,18 @@ class Corpus:
         self.content_field = "contents" if content_field is None else content_field.lower()
         self.analyzer_str = analyzer_str
         self.analyzer = self.get_analyzer_from_str(analyzer_str)
-        
+
 
     def get_analyzer_from_str(self, analyzer_str):
         if analyzer_str == 'StandardAnalyzer':
-            return lucene.StandardAnalyzer(lucene.Version.LUCENE_CURRENT)
+            return StandardAnalyzer(Version.LUCENE_CURRENT)
 
 class Worker(threading.Thread):
     def __init__(self, parent, corpus, action, args_dir = None):
         # This is a subclass of threading.Thread that makes sure all the processor-intensive Lucene functions take place
         # in a separate thread. To use it, pass Worker a reference to the main txtorgui instance (it will communicate back
-        # to this instance using parent.write()) a Corpus class, and an "action" dictionary that tells the threading.Thread.run() 
-        # method what action to take. For example, action = {'search': 'query'} would run the lucene query 'query' and action = 
+        # to this instance using parent.write()) a Corpus class, and an "action" dictionary that tells the threading.Thread.run()
+        # method what action to take. For example, action = {'search': 'query'} would run the lucene query 'query' and action =
         # {'export_tdm': 'outfile.csv'} would export a TDM to outfile.csv
 
         self.parent = parent
@@ -40,7 +50,7 @@ class Worker(threading.Thread):
         self._init_index()
 
         super(Worker,self).__init__()
-        
+
     def run(self):
 
         vm_env = lucene.getVMEnv()
@@ -69,24 +79,25 @@ class Worker(threading.Thread):
             self.rebuild_metadata_cache(*self.action['rebuild_metadata_cache'])
         if "reindex" in self.action.keys():
             self.reindex()
-        
+
 
     def _init_index(self):
 
         if not os.path.exists(self.corpus.path):
             os.mkdir(self.corpus.path)
         try:
-            searcher = lucene.IndexSearcher(lucene.SimpleFSDirectory(lucene.File(self.corpus.path)), True)
-        except lucene.JavaError:
+            searcher = IndexSearcher(SimpleFSDirectory(File(self.corpus.path)), True)
+        #except lucene.JavaError:
+        except:
             analyzer = self.corpus.analyzer
-            writer = lucene.IndexWriter(lucene.SimpleFSDirectory(lucene.File(self.corpus.path)), analyzer, True, lucene.IndexWriter.MaxFieldLength.LIMITED)
+            writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), analyzer, True, IndexWriter.MaxFieldLength.LIMITED)
             writer.setMaxFieldLength(1048576)
             writer.optimize()
             writer.close()
 
-        self.lucene_index = lucene.SimpleFSDirectory(lucene.File(self.corpus.path))
-        self.searcher = lucene.IndexSearcher(self.lucene_index, True)
-        self.reader = lucene.IndexReader.open(self.lucene_index, True)
+        self.lucene_index = SimpleFSDirectory(File(self.corpus.path))
+        self.searcher = IndexSearcher(self.lucene_index, True)
+        self.reader = IndexReader.open(self.lucene_index, True)
         self.analyzer = self.corpus.analyzer
 
     def import_directory(self, dirname):
@@ -95,9 +106,9 @@ class Worker(threading.Thread):
     def import_csv(self, csv_file):
 
         try:
-            writer = lucene.IndexWriter(lucene.SimpleFSDirectory(lucene.File(self.corpus.path)), self.analyzer, False, 
-                                        lucene.IndexWriter.MaxFieldLength.LIMITED)
-            changed_rows = addmetadata.add_metadata_from_csv(self.searcher, self.reader, writer, csv_file,self.args_dir, 
+            writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), self.analyzer, False,
+                                        IndexWriter.MaxFieldLength.LIMITED)
+            changed_rows = addmetadata.add_metadata_from_csv(self.searcher, self.reader, writer, csv_file,self.args_dir,
                                                              new_files=True)
             writer.close()
         except UnicodeDecodeError:
@@ -112,7 +123,7 @@ class Worker(threading.Thread):
 
     def import_csv_with_content(self, csv_file, content_field):
         try:
-            writer = lucene.IndexWriter(lucene.SimpleFSDirectory(lucene.File(self.corpus.path)), self.analyzer, False, lucene.IndexWriter.MaxFieldLength.LIMITED)
+            writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), self.analyzer, False, IndexWriter.MaxFieldLength.LIMITED)
             changed_rows = addmetadata.add_metadata_and_content_from_csv(self.searcher, self.reader, writer, csv_file, content_field, self.args_dir)
             writer.close()
         except UnicodeDecodeError:
@@ -122,10 +133,10 @@ class Worker(threading.Thread):
                 pass
             self.parent.write({'error': 'CSV import failed: file contained non-unicode characters. Please save the file with UTF-8 encoding and try again!'})
             return
-        self.parent.write({'message': "CSV import complete: %s rows added." % (changed_rows,)})        
+        self.parent.write({'message': "CSV import complete: %s rows added." % (changed_rows,)})
 
     def reindex(self):
-        writer = lucene.IndexWriter(lucene.SimpleFSDirectory(lucene.File(self.corpus.path)), self.corpus.analyzer, False, lucene.IndexWriter.MaxFieldLength.LIMITED)
+        writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), self.corpus.analyzer, False, IndexWriter.MaxFieldLength.LIMITED)
         indexutils.reindex_all(self.reader, writer, self.corpus.analyzer)
         writer.optimize()
         writer.close()
@@ -143,7 +154,7 @@ class Worker(threading.Thread):
         try:
             self.parent.write({'status': 'Running Lucene query %s' % (command,)})
             scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
-                
+
         except lucene.JavaError as e:
             if 'ParseException' in str(e):
                 self.parent.write({'error': "Invalid query; see Lucene documentation for information on query syntax"})
@@ -219,7 +230,7 @@ class Worker(threading.Thread):
 
             for k in metadata_dict.keys():
                 metadata_dict[k] = metadata_dict[k]
-                # sanitize various characters from input. 
+                # sanitize various characters from input.
                 new_segment.append(k + ": [" + "|".join(metadata_dict[k]).replace('\n','').replace(']','').replace('[','').replace(':','') + "]\n")
         else:
             new_segment = []
@@ -235,5 +246,3 @@ class Worker(threading.Thread):
 
         self.parent.write({'rebuild_cache_complete': None})
         self.parent.write({'message': 'Finished rebuilding cache file.'})
-
-

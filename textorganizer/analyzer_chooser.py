@@ -3,7 +3,10 @@ import tkFileDialog
 import re
 import math,random
 import os, sys, lucene, thread, time
-from lucene import Version
+try:
+    from lucene import Version
+except:
+    from org.apache.lucene.util import Version
 
 analyzerlist = ["EnglishAnalyzer ", "StopAnalyzer", "SimpleAnalyzer", "WhitespaceAnalyzer", "StandardAnalyzer", "ArabicAnalyzer", "ArmenianAnalyzer", "BasqueAnalyzer", \
      "BulgarianAnalyzer", "BrazilianAnalyzer", "CatalanAnalyzer", "CJKAnalyzer", "CzechAnalyzer", "DanishAnalyzer", "DutchAnalyzer", \
@@ -11,26 +14,66 @@ analyzerlist = ["EnglishAnalyzer ", "StopAnalyzer", "SimpleAnalyzer", "Whitespac
      "IndonesianAnalyzer", "ItalianAnalyzer", "LatvianAnalyzer", "NorwegianAnalyzer", "PersianAnalyzer", "PortugueseAnalyzer", \
      "RomanianAnalyzer", "RussianAnalyzer", "SwedishAnalyzer", "ThaiAnalyzer", "TurkishAnalyzer"]
 
+analyzersources = {'ArabicAnalyzer':'org.apache.lucene.analysis.ar',
+                   'ArmenianAnalyzer':'org.apache.lucene.analysis.hy',
+                   'BasqueAnalyzer':'org.apache.lucene.analysis.eu',
+                   'BrazilianAnalyzer':'org.apache.lucene.analysis.br',
+                   'BulgarianAnalyzer':'org.apache.lucene.analysis.bg',
+                   'CatalanAnalyzer':'org.apache.lucene.analysis.ca',
+                   'CJKAnalyzer':'org.apache.lucene.analysis.cjk',
+                   'ClassicAnalyzer':'org.apache.lucene.analysis.standard',
+                   'CzechAnalyzer':'org.apache.lucene.analysis.cz',
+                   'DanishAnalyzer':'org.apache.lucene.analysis.da',
+                   'FinnishAnalyzer':'org.apache.lucene.analysis.fi',
+                   'FrenchAnalyzer':'org.apache.lucene.analysis.fr',
+                   'GalicianAnalyzer':'org.apache.lucene.analysis.gl',
+                   'GermanAnalyzer':'org.apache.lucene.analysis.de',
+                   'GreekAnalyzer':'org.apache.lucene.analysis.el',
+                   'HindiAnalyzer':'org.apache.lucene.analysis.hi',
+                   'HungarianAnalyzer':'org.apache.lucene.analysis.hu',
+                   'IndonesianAnalyzer':'org.apache.lucene.analysis.id',
+                   'IrishAnalyzer':'org.apache.lucene.analysis.ga',
+                   'ItalianAnalyzer':'org.apache.lucene.analysis.it',
+                   'LatvianAnalyzer':'org.apache.lucene.analysis.lv',
+                   'NorwegianAnalyzer':'org.apache.lucene.analysis.no',
+                   'PersianAnalyzer':'org.apache.lucene.analysis.fa',
+                   'PortugueseAnalyzer':'org.apache.lucene.analysis.pt',
+                   'RomanianAnalyzer':'org.apache.lucene.analysis.ro',
+                   'RussianAnalyzer':'org.apache.lucene.analysis.ru',
+                   'SimpleAnalyzer':'org.apache.lucene.analysis.core',
+                   'SpanishAnalyzer':'org.apache.lucene.analysis.es',
+                   'StandardAnalyzer':'org.apache.lucene.analysis.standard',
+                   'StopAnalyzer':'org.apache.lucene.analysis.core',
+                   'SwedishAnalyzer':'org.apache.lucene.analysis.sv',
+                   'ThaiAnalyzer':'org.apache.lucene.analysis.th',
+                   'TurkishAnalyzer':'org.apache.lucene.analysis.tr',
+                   'UAX29URLEmailAnalyzer':'org.apache.lucene.analysis.standard',
+                   'EnglishAnalyzer':'org.apache.lucene.analysis.en'
+                   }
+
 from . import stemmingtools
 
 class AnalyzerChooser:
     def __init__(self, parent):
         self.main_gui = parent
-        self.curlucene = lucene.initVM()        
+        self.curlucene = lucene.initVM()
         r = self.root = Toplevel()
-        self.root.title('txtorg')   
+        self.root.title('txtorg')
 
         self.analyzers = []
         self.analyzerliststr = []
 
         for a in analyzerlist:
             try:
-                exec('from lucene import '+a)
+                try:
+                    exec('from lucene import '+a)
+                except:
+                    exec('from '+ analyzersources[a] +' import '+ a)
                 exec('self.analyzers.append('+a+'(Version.LUCENE_CURRENT))')
                 exec('self.analyzerliststr.append("'+a+'")')
             except:
                 print "Analyzer not present", a
-                        
+
         f = PanedWindow(r, showhandle=True)
         lf = PanedWindow(f, relief=GROOVE, borderwidth=2,showhandle=True)
         f.pack(fill=BOTH,expand=1)
@@ -71,10 +114,10 @@ class AnalyzerChooser:
         cfb.pack(fill=X)
         cf.pack(side=LEFT,expand=1,fill=BOTH,pady=10,padx=10)
 
-        
+
 
         # Pack it all into the main frame
-        
+
         buttonframe = Frame(r)
         Button(buttonframe, text="Cancel", command=self.cancel).pack(side=LEFT,padx=5,pady=8)
         Button(buttonframe, text="OK", command=self.ok).pack(side=LEFT)
@@ -83,10 +126,10 @@ class AnalyzerChooser:
         # set up event handling
 
         #self.analyzerlist.bind('<ButtonRelease-1>',lambda x: self.updateMetadata()
-        #self.analyzerlist.bind('<Key>',lambda x: self.updateMetadata())        
+        #self.analyzerlist.bind('<Key>',lambda x: self.updateMetadata())
 
         # populate fields and run the gui
-        
+
         self.updateAnalyzer()
 
         # poll for changes in the list
@@ -115,36 +158,36 @@ class AnalyzerChooser:
     def delay(self, wait, func):
         time.sleep(wait * .001)    # convert msecs into secs and delay this thread
         func()	                          # call the function passed as a parameter
-        
+
     def updateAnalyzer(self):
         """update the list of items in the corpus"""
         for item in self.analyzerliststr:
             self.analyzerlist.insert(END, item)
 
-    def getCorpus(self):        
+    def getCorpus(self):
         """return the list of selected items in the corpus"""
-        items = self.analyzerlist.curselection()        
+        items = self.analyzerlist.curselection()
         itemstr = [self.analyzerlist.get(int(item)) for item in items]
 
         return itemstr
-            
+
     def updateMetadata(self):
-        """update the metadata field to reflect the tags from the selected corpus"""                        
+        """update the metadata field to reflect the tags from the selected corpus"""
         # enable clicking on these
         self.searchbutton.configure(state=NORMAL)
         self.e.configure(state=NORMAL)
 
         self.resetTokens()
         self.updateTokens()
-        
-    def updateTokens(self):
-        """update the numbers displayed for the documents and terms"""               
 
-        # Perform the search and return the number of terms and documents        
+    def updateTokens(self):
+        """update the numbers displayed for the documents and terms"""
+
+        # Perform the search and return the number of terms and documents
         print "Update tokens"
         # Update the GUI
         self.tokentext.configure(state=NORMAL)
-        
+
         self.tokentext.delete(1.0,END)
         self.tokentext.insert(END,"Tokens: ")
 
@@ -156,7 +199,7 @@ class AnalyzerChooser:
         print "Selected analyzer"
 
         self.curlucene.attachCurrentThread()
-        
+
         tokenStream = analyzer.tokenStream("contents", lucene.StringReader(self.e.get()))
         term = tokenStream.addAttribute(lucene.TermAttribute.class_)
 
@@ -172,18 +215,18 @@ class AnalyzerChooser:
                     self.tokentext.insert(END, "[%s]" %(tokenstring))
                 else:
                     self.tokentext.insert(END, "[%s]" %(term.term()))
-                
+
 
     def resetTokens(self):
-        """reset the numbers displayed for the documents and terms"""                
+        """reset the numbers displayed for the documents and terms"""
         self.tokentext.configure(state=NORMAL)
 
         numDocs = 0
         numTerms = 0
-        
+
         self.tokentext.delete(1.0,END)
         self.tokentext.insert(END,"Tokens: ")
-                
+
         self.tokentext.configure(state=DISABLED)
 
     def poll(self):
@@ -192,6 +235,6 @@ class AnalyzerChooser:
         except TclError:
             return
         if now != self.current:
-            self.updateMetadata()            
+            self.updateMetadata()
             self.current = now
         self.after(250, self.poll)

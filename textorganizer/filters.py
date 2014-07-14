@@ -1,6 +1,11 @@
 import re
 from lucene import *
 
+try:
+    from org.apache.pylucene.analysis import PythonTokenFilter
+except:
+    'Using old version.'
+
 ## Here is the code for the EnglishPossessiveFilter in Java.
 
 # 29public final class EnglishPossessiveFilter extends TokenFilter {
@@ -15,10 +20,10 @@ from lucene import *
 # 38    if (!input.incrementToken()) {
 # 39      return false;
 # 40    }
-# 41    
+# 41
 # 42    final char[] buffer = termAtt.buffer();
 # 43    final int bufferLength = termAtt.length();
-# 44    
+# 44
 # 45    if (bufferLength >= 2 &&
 # 46        buffer[bufferLength-2] == '\'' &&
 # 47        (buffer[bufferLength-1] == 's' || buffer[bufferLength-1] == 'S'))
@@ -49,7 +54,7 @@ class EnglishPossessiveFilterHC(PythonTokenFilter):
 
         return None
 
-            
+
 class PositionalStopFilter(PythonTokenFilter):
 
     def __init__(self, tokenStream, stopWords):
@@ -100,7 +105,7 @@ class NumericFilter(PythonTokenFilter):
                 final.append(token)
                 continue
         return final
-        
+
     def incrementToken(self):
         try:
             self.term.setTermBuffer(next(self.iter))
@@ -113,7 +118,7 @@ class PunctuationFilter(PythonTokenFilter):
     PunctuationFilter is a TokenFilter that removes punctuation and
     anything following an apostrophe.
     '''
-    
+
     def __init__(self, in_stream):
         PythonTokenFilter.__init__(self, in_stream)
         term = self.term = self.addAttribute(TermAttribute.class_)
@@ -134,7 +139,7 @@ class PunctuationFilter(PythonTokenFilter):
                 final.append(t)
                 continue
         return final
-        
+
     def incrementToken(self):
         try:
             self.term.setTermBuffer(next(self.iter))
@@ -178,7 +183,7 @@ class PhraseFilter(PythonTokenFilter):
 
         if not self.inStream.incrementToken():
             return False
-        
+
         for phrase in self.allPhrases:
             addPhrase = False
             lag0 = self.termAttr.term()
@@ -197,7 +202,7 @@ class PhraseFilter(PythonTokenFilter):
 
         self.lag2 = self.lag1
         self.lag1 = self.termAttr.term()
-        
+
         # print "lag1: ", self.lag1
         # print "lag2: ", self.lag2
 
@@ -213,5 +218,3 @@ class PhraseFilter(PythonTokenFilter):
         AnalyzerUtils.setType(self.save, self.TOKEN_TYPE_PHRASE)
         AnalyzerUtils.setPositionIncrement(self.save, 0)
         self.phraseStack.append(self.save.captureState())
-
-        

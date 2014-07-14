@@ -1,5 +1,19 @@
-from lucene import \
+try:
+    from lucene import \
     SimpleFSDirectory, File, IndexReader, Term, Term, IndexWriter, Version, StandardAnalyzer, TermQuery, IndexSearcher, Document, Field
+except:
+    from org.apache.lucene.store import SimpleFSDirectory
+    from java.io import File
+    from org.apache.lucene.index import IndexReader
+    from org.apache.lucene.index import Term
+    from org.apache.lucene.index import IndexWriter
+    from org.apache.lucene.util import Version
+    from org.apache.lucene.analysis.standard import StandardAnalyzer
+    from org.apache.lucene.search import TermQuery
+    from org.apache.lucene.search import IndexSearcher
+    from org.apache.lucene.document import Field
+    from org.apache.lucene.document import Document
+    
 
 import threading, sys, time, os, csv, re, codecs, shutil
 from collections import defaultdict
@@ -83,7 +97,7 @@ def get_fields_and_values(reader, max_vals = 30):
 #                 return
 #             elif choice == 'd':
 #                 break
-        
+
 #         for d in broken_docs:
 #             fp = d.get("path")
 #             print "Deleting", fp
@@ -93,7 +107,7 @@ def get_fields_and_values(reader, max_vals = 30):
 
 
 #     def reindex(self, scoreDocs, analyzer):
-        
+
 #         for scoreDoc in scoreDocs:
 #             doc = self.searcher.doc(scoreDoc.doc)
 #             filepath = doc.get('path')
@@ -106,14 +120,14 @@ def get_fields_and_values(reader, max_vals = 30):
 
 
 
-            
+
 #     def reassemble_doc(self, lucenedoc):
 
 #         edited_doc = Document()
 #         for f in lucenedoc.getFields():
 #             edited_doc.add(Field.cast_(f))
-            
-                    
+
+
 #         # Now, add back the unstored "contents" field
 #         try:
 #             file = open(filepath)
@@ -132,6 +146,3 @@ def get_fields_and_values(reader, max_vals = 30):
 #             return None
 
 #         return edited_doc
-
-
-

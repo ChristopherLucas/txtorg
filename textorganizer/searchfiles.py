@@ -1,7 +1,23 @@
 #!/usr/bin/env python
-from lucene import \
+try:
+    from lucene import \
     QueryParser, IndexSearcher, SimpleFSDirectory, File, \
     VERSION, initVM, Version, IndexReader, TermQuery, Term, Field, MatchAllDocsQuery
+except:
+    from org.apache.lucene.queryparser.classic import QueryParser
+    from org.apache.lucene.index import IndexReader
+    from org.apache.lucene.index import IndexWriter
+    from org.apache.lucene.search import IndexSearcher
+    from org.apache.lucene.search import TermQuery
+    from java.io import File
+    from org.apache.lucene.store import SimpleFSDirectory
+    from lucene import initVM
+    from org.apache.lucene.util import Version
+    from org.apache.lucene.search import TermQuery
+    from org.apache.lucene.index import Term
+    from org.apache.lucene.document import Field
+    from org.apache.lucene.search import MatchAllDocsQuery
+
 import threading, sys, time, os, csv, re, codecs
 from shutil import copy2
 import cStringIO
@@ -22,7 +38,7 @@ class DictUnicodeWriter(object):
 
     def writerow(self, D):
 #        self.writer.writerow({k:v.encode("utf-8") for k,v in D.items()})
-    
+
         row = {}
         for k, v in D.items():
             row[k] = v.encode("utf-8")
@@ -113,7 +129,7 @@ def filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs):
                 d.pop(t)
 
     return newDicts, newTerms-set(removeTerms)
-    
+
 def writeTDM(allDicts,allTerms,termsDocs,fname,minDocs=0,maxDocs=sys.maxint):
     allDicts, allTerms = filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs)
     l = list(allTerms)
@@ -190,7 +206,7 @@ def write_metadata(searcher, reader, document_ids, fname):
             df[field.name()] = field.stringValue()
         docFields.append(df)
         allFields = allFields.union(set(df.keys()))
-    
+
     fields = [u'name',u'path'] + sorted([x for x in allFields if x not in ['name','path']])
 
     with codecs.open(fname, 'w', encoding='UTF-8') as outf:
