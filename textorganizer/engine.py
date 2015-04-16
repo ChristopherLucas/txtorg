@@ -1,20 +1,17 @@
 import Queue
 import threading
-import lucene
-try:
-    from lucene import SimpleFSDirectory, StandardAnalyzer, Version, IndexSearcher, File
-except:
-    from org.apache.lucene.store import SimpleFSDirectory
-    from org.apache.lucene.analysis.standard import StandardAnalyzer
-    from org.apache.lucene.util import Version
-    from org.apache.lucene.search import IndexSearcher
-    from org.apache.lucene.index import IndexWriter
-    from java.io import File
-
 import codecs
 import datetime
 import os
-from . import searchfiles, indexfiles, indexutils, addmetadata
+import whoosh
+from whoosh.analysis import StandardAnalyzer, SimpleAnalyzer
+from whoosh.searching import Searcher
+from whoosh.index import exists_in, create_in, open_dir
+from whoosh.fields import Schema, STORED, ID, KEYWORD, TEXT
+
+
+#from . import searchfiles, indexfiles, indexutils, addmetadata
+from . import indexutils
 
 class Corpus:
     scoreDocs = None
@@ -33,7 +30,7 @@ class Corpus:
 
     def get_analyzer_from_str(self, analyzer_str):
         if analyzer_str == 'StandardAnalyzer':
-            return StandardAnalyzer(Version.LUCENE_CURRENT)
+            return StandardAnalyzer
 
 class Worker(threading.Thread):
     def __init__(self, parent, corpus, action, args_dir = None):
@@ -49,12 +46,15 @@ class Worker(threading.Thread):
         self.args_dir = args_dir
         self._init_index()
 
+        # Make the thread
         super(Worker,self).__init__()
 
     def run(self):
 
-        vm_env = lucene.getVMEnv()
-        vm_env.attachCurrentThread()
+        # Start the thread
+        print "Trying to start thread?!"
+        #super(Worker,self).start()
+        #super(Worker,self).join()                
 
         # yeah, this should be refactored
         if "search" in self.action.keys():
@@ -85,20 +85,24 @@ class Worker(threading.Thread):
 
         if not os.path.exists(self.corpus.path):
             os.mkdir(self.corpus.path)
-        try:
-            searcher = IndexSearcher(SimpleFSDirectory(File(self.corpus.path)), True)
-        #except lucene.JavaError:
-        except:
-            analyzer = self.corpus.analyzer
-            writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), analyzer, True, IndexWriter.MaxFieldLength.LIMITED)
-            writer.setMaxFieldLength(1048576)
-            writer.optimize()
-            writer.close()
 
-        self.lucene_index = SimpleFSDirectory(File(self.corpus.path))
-        self.searcher = IndexSearcher(self.lucene_index, True)
-        self.reader = IndexReader.open(self.lucene_index, True)
+        analyzer = self.corpus.analyzer
         self.analyzer = self.corpus.analyzer
+        
+        if exists_in(self.corpus.path):
+            ix = open_dir(self.corpus.path)
+        else:            
+            schema = Schema(title=TEXT(stored=True,analyzer=analyzer), content=TEXT(analyzer=analyzer),
+                            path=ID(stored=True))
+            ix = create_in(self.corpus.path,schema)
+            writer = ix.writer()            
+            writer.commit()
+
+        self.index = ix
+        self.searcher = ix.searcher();
+        #self.reader = IndexReader.open(self.lucene_index, True)
+        self.reader = ix.reader();
+        #self.analyzer = self.corpus.analyzer
 
     def import_directory(self, dirname):
         indexfiles.IndexFiles(dirname, self.corpus.path, self.analyzer, self.args_dir)
@@ -209,6 +213,9 @@ class Worker(threading.Thread):
 
 
     def rebuild_metadata_cache(self, cache_filename, corpus_directory, delete = False):
+        print "Rebuild?"
+        print cache_filename
+        print corpus_directory
         metadata_dict = indexutils.get_fields_and_values(self.reader)
         # finds the section of the old file to overwrite, and stores the old file in memory.
         # if delete is True, it will remove the index from the file
