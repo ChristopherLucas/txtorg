@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-from whoosh.fields import Schema, TEXT
+from whoosh.fields import *
+from whoosh.index import create_in
 
+from whoosh.analysis import SimpleAnalyzer
 
-import sys, os, lucene, threading, time
+import sys, os, threading, time
 
 from datetime import datetime
 import uuid
@@ -26,16 +28,19 @@ class IndexFiles(object):
         if not os.path.exists(storeDir):
             os.mkdir(storeDir)
 
-        store = SimpleFSDirectory(File(storeDir))
-        writer = IndexWriter(store, analyzer, False,
-                                    IndexWriter.MaxFieldLength.LIMITED)
-        writer.setMaxFieldLength(1048576)
+        schema = Schema(name=TEXT(stored=True),
+                    path=ID(stored=True),
+                    txtorg_id=ID(stored=True),
+                    contents=TEXT(stored=False,vector=True,analyzer=analyzer()))
+        ix = create_in(storeDir, schema)
+        writer = ix.writer()
+        print analyzer
+        
         print 'document dir is', root
         self.indexDocs(root, writer)
 
         print 'optimizing index',
-        writer.optimize()
-        writer.close()
+        writer.commit(optimize=True)
         print 'done'
 
     def indexDocs(self, root, writer):
@@ -50,23 +55,14 @@ class IndexFiles(object):
                     contents = unicode(file.read(), 'UTF-8')
                     contents = preprocess(contents, self.args_dir)
                     file.close()
-                    doc = Document()
-                    doc.add(Field("name", filename,
-                                         Field.Store.YES,
-                                         Field.Index.NOT_ANALYZED))
-                    doc.add(Field("path", os.path.realpath(path),
-                                         Field.Store.YES,
-                                         Field.Index.NOT_ANALYZED))
-                    doc.add(Field("txtorg_id", str(uuid.uuid1()),
-                                         Field.Store.YES,
-                                         Field.Index.NOT_ANALYZED))
-                    if len(contents) > 0:
-                        doc.add(Field("contents", contents,
-                                             Field.Store.NO,
-                                             Field.Index.ANALYZED,
-                                             Field.TermVector.YES))
-                    else:
+                    print contents
+                    print type(contents)
+                    writer.add_document(name=unicode(filename,'UTF-8'),
+                                        path=unicode(os.path.realpath(path),'UTF-8'),
+                                        txtorg_id=unicode(str(uuid.uuid1()),'UTF-8'),
+                                        contents=contents)
+                    
+                    if len(contents) == 0:
                         print "warning: no content in %s" % filename
-                    writer.addDocument(doc)
                 except Exception, e:
                     print "Failed in indexDocs:", e

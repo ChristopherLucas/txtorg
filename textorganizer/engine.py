@@ -11,7 +11,7 @@ from whoosh.fields import Schema, STORED, ID, KEYWORD, TEXT
 
 
 #from . import searchfiles, indexfiles, indexutils, addmetadata
-from . import indexutils
+from . import indexutils, indexfiles
 
 class Corpus:
     scoreDocs = None
@@ -52,10 +52,10 @@ class Worker(threading.Thread):
     def run(self):
 
         # Start the thread
-        print "Trying to start thread?!"
+        print "Trying to start thread?! From worker.run"
         #super(Worker,self).start()
         #super(Worker,self).join()                
-
+        print self.action
         # yeah, this should be refactored
         if "search" in self.action.keys():
             self.run_searcher(self.action['search'])
@@ -105,6 +105,7 @@ class Worker(threading.Thread):
         #self.analyzer = self.corpus.analyzer
 
     def import_directory(self, dirname):
+        print ">>> ??? <<<"
         indexfiles.IndexFiles(dirname, self.corpus.path, self.analyzer, self.args_dir)
 
     def import_csv(self, csv_file):

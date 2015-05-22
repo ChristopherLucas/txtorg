@@ -458,9 +458,12 @@ class txtorgui:
         new_index_path = os.path.join(dir_name, good_corpus_name)
 
         # For now, assume it new corpuses use StandardAnalyzer
+        print "Trying to make new corpus"
         c = Corpus(new_index_path, analyzer_str=None)
         w = Worker(self, c, {'rebuild_metadata_cache': (self.cache_file, c.path)})
+        print "Trying to start the thread"
         w.start()
+        print "Said w.start"
         
 
     def import_btn_click(self):
