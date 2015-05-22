@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 
+from whoosh.fields import Schema, TEXT
+
+
 import sys, os, lucene, threading, time
-try:
-    from lucene import Field, SimpleFSDirectory, File, IndexWriter, Document
-except:
-    from org.apache.lucene.document import Field
-    from java.io import File
-    from org.apache.lucene.store import SimpleFSDirectory
-    from org.apache.lucene.index import IndexWriter
-    from org.apache.lucene.document import Document
 
 from datetime import datetime
 import uuid

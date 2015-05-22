@@ -1,22 +1,9 @@
 #!/usr/bin/env python
-try:
-    from lucene import \
-    QueryParser, IndexSearcher, SimpleFSDirectory, File, \
-    VERSION, initVM, Version, IndexReader, TermQuery, Term, Field, MatchAllDocsQuery
-except:
-    from org.apache.lucene.queryparser.classic import QueryParser
-    from org.apache.lucene.index import IndexReader
-    from org.apache.lucene.index import IndexWriter
-    from org.apache.lucene.search import IndexSearcher
-    from org.apache.lucene.search import TermQuery
-    from java.io import File
-    from org.apache.lucene.store import SimpleFSDirectory
-    from lucene import initVM
-    from org.apache.lucene.util import Version
-    from org.apache.lucene.search import TermQuery
-    from org.apache.lucene.index import Term
-    from org.apache.lucene.document import Field
-    from org.apache.lucene.search import MatchAllDocsQuery
+
+#    from lucene import \
+#    QueryParser, IndexSearcher, SimpleFSDirectory, File, \
+#    VERSION, initVM, Version, IndexReader, TermQuery, Term, Field, MatchAllDocsQuery
+from whoosh.qparser import QueryParser
 
 import threading, sys, time, os, csv, re, codecs
 from shutil import copy2

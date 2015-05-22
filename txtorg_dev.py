@@ -407,7 +407,6 @@ class txtorgui:
 
     def write(self, data):
         self.queue.put(data)
-        print "todo"
 
     def update(self):
         try:
@@ -470,17 +469,15 @@ class txtorgui:
 
     def rebuild_btn_click(self):
         self.status.set("Rebuilding Metadata Cache... This could take a while depending on the size of the corpus.")
-        #c = Worker(self, self.corpora[self.corpus_idx], {'rebuild_metadata_cache': (self.cache_file, self.corpora[self.corpus_idx].path)})
-        #c.start()
+        c = Worker(self, self.corpora[self.corpus_idx], {'rebuild_metadata_cache': (self.cache_file, self.corpora[self.corpus_idx].path)})
+        c.start()
 
     def change_analyzer(self):
-        print "todo"        
-        #analyzer_gui = AnalyzerChooser(self)
+        analyzer_gui = AnalyzerChooser(self)
 
     def delete_corpus(self):
-        print "todo"
-        #c = Worker(self, self.corpora[self.corpus_idx], {'delete': self.cache_file})
-        #c.start()
+        c = Worker(self, self.corpora[self.corpus_idx], {'delete': self.cache_file})
+        c.start()
 
     def set_analyzer(self, analyzer_str, analyzer):
         self.status.set("Rebuilding Index to use analyzer %s... This could take a while depending on the size of the corpus." % (analyzer_str,))
@@ -492,13 +489,11 @@ class txtorgui:
     def import_files(self, args_dir):
         try:
             if 'dir' in args_dir:
-                print "todo"
-                #c = Worker(self, self.corpora[self.corpus_idx], {'import_directory': args_dir['dir']}, args_dir)
-                #c.start()
+                c = Worker(self, self.corpora[self.corpus_idx], {'import_directory': args_dir['dir']}, args_dir)
+                c.start()
             elif 'file' in args_dir:
-                print "todo"                
-                #c = Worker(self, self.corpora[self.corpus_idx], {'import_csv': args_dir['file']}, args_dir)
-                #c.start()
+                c = Worker(self, self.corpora[self.corpus_idx], {'import_csv': args_dir['file']}, args_dir)
+                c.start()
             elif 'full_file' in args_dir:
                 d = FieldSelectDialog(args_dir['full_file'], self.root, 
                                       partial(self.import_csv_with_content, args_dir))
@@ -543,10 +538,9 @@ class txtorgui:
                         continue
                     elif line.startswith("CORPUS:"):
                         if corpus_count > 0:
-                            print "todo"                            
-                            #c = Corpus(cname, analyzer_str = canalyzer, field_dict = cfields, content_field=ccontent_field)
-                            #self.corpora.append(c)
-                            #self.corpuslist.insert(END, c.path)
+                            c = Corpus(cname, analyzer_str = canalyzer, field_dict = cfields, content_field=ccontent_field)
+                            self.corpora.append(c)
+                            self.corpuslist.insert(END, c.path)
                         cname = line.split("CORPUS:")[1].strip()
                         cfields = {}
                         canalyzer = None
@@ -563,10 +557,9 @@ class txtorgui:
                         print "Corrupted line found in cache file: ", line
                 # add in the last corpus
                 if cname is not None:
-                    print 'todo'
-                    #c = Corpus(cname, field_dict = cfields, analyzer_str = canalyzer, content_field=ccontent_field)
-                    #self.corpora.append(c)
-                    #self.corpuslist.insert(END, c.path)
+                    c = Corpus(cname, field_dict = cfields, analyzer_str = canalyzer, content_field=ccontent_field)
+                    self.corpora.append(c)
+                    self.corpuslist.insert(END, c.path)
         self.status.set("Corpora loaded from %s", self.cache_file)
                 
                 
@@ -633,17 +626,14 @@ class txtorgui:
     def saveTDM(self, args):
         print args
         if 'ctm' in args:
-            print 'todo'
-            #c = Worker(self, self.corpora[self.corpus_idx], {'export_tdm': args['ctm']})
-            #c.start()
+            c = Worker(self, self.corpora[self.corpus_idx], {'export_tdm': args['ctm']})
+            c.start()
         elif 'stm' in args:
-            print 'todo'
-            #c = Worker(self, self.corpora[self.corpus_idx], {'export_tdm_stm': args['stm']})
-            #c.start()
+            c = Worker(self, self.corpora[self.corpus_idx], {'export_tdm_stm': args['stm']})
+            c.start()
         elif 'csv' in args:
-            print 'todo'
-            #c = Worker(self, self.corpora[self.corpus_idx], {'export_tdm_csv': args['csv']})
-            #c.start()
+            c = Worker(self, self.corpora[self.corpus_idx], {'export_tdm_csv': args['csv']})
+            c.start()
 
 
     def save_files(self):
@@ -663,10 +653,10 @@ class txtorgui:
     def runQuery(self):
         """runs a query using the run_searcher method of the active Corpus"""
         print "running query"
-        #c = Worker(self, self.corpora[self.corpus_idx], {'search': self.e.get().strip()})
-        #c.start()
+        c = Worker(self, self.corpora[self.corpus_idx], {'search': self.e.get().strip()})
+        c.start()
 
-        # self.corpora[self.corpus_idx].run_searcher(self.e.get().strip())
+        self.corpora[self.corpus_idx].run_searcher(self.e.get().strip())
 
 
     # callbacks for changing the values
