@@ -659,7 +659,7 @@ class txtorgui:
         c = Worker(self, self.corpora[self.corpus_idx], {'search': self.e.get().strip()})
         c.start()
 
-        self.corpora[self.corpus_idx].run_searcher(self.e.get().strip())
+        #self.corpora[self.corpus_idx].run_searcher(self.e.get().strip())
 
 
     # callbacks for changing the values

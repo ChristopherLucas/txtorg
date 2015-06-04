@@ -11,7 +11,7 @@ from whoosh.fields import Schema, STORED, ID, KEYWORD, TEXT
 
 
 #from . import searchfiles, indexfiles, indexutils, addmetadata
-from . import indexutils, indexfiles
+from . import searchfiles, indexutils, indexfiles
 
 class Corpus:
     scoreDocs = None
@@ -157,18 +157,13 @@ class Worker(threading.Thread):
     def run_searcher(self, command):
         start_time = datetime.datetime.now()
         try:
-            self.parent.write({'status': 'Running Lucene query %s' % (command,)})
-            scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
+            self.parent.write({'status': 'Running whoosh query %s' % (command,)})
+            #scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
+            scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.index, self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
 
-        except lucene.JavaError as e:
-            if 'ParseException' in str(e):
-                self.parent.write({'error': "Invalid query; see Lucene documentation for information on query syntax"})
-                return
-            elif 'IllegalArgumentException' in str(e):
-                self.parent.write({'error': "Index is empty and cannot be queried"})
-                return
-            else:
-                raise e
+        except Exception as e:
+            self.parent.write({'error': str(e)})
+            raise e
 
         end_time = datetime.datetime.now()
         self.parent.write({'query_results': (scoreDocs, allTerms, allDicts, termsDocs)})

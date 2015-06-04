@@ -60,40 +60,49 @@ class Ticker(object):
             time.sleep(1.0)
 
 
-def run(searcher, analyzer, reader, command, content_field="contents"):
+def run(index, searcher, analyzer, reader, command, content_field="contents"):
 
 
 
     """check to see whether the user specified a field"""
     print command
     if command == 'all':
-        query = MatchAllDocsQuery()
+        myresults = reader.all_doc_ids()
         print 'Query Completed'
     else:
-        query = QueryParser(Version.LUCENE_CURRENT, content_field, analyzer).parse(command)
+        query = QueryParser(content_field,schema=index.schema).parse(command)
+        myresults = searcher.docs_for_query(query)
         print 'Query Completed'
-
-    scoreDocs = searcher.search(query, reader.maxDoc()).scoreDocs
 
     allDicts = []
     allTerms = set()
     termsDocs = dict()
 
-    for scoreDoc in scoreDocs:
-        doc = searcher.doc(scoreDoc.doc)
-        vector = reader.getTermFreqVector(scoreDoc.doc,content_field)
+    scoreDocs = []
+    for docnum in myresults:
+        #doc = searcher.doc(scoreDoc.doc)
+        vector = searcher.vector_as("frequency", docnum, content_field)
+        #vector = reader.getTermFreqVector(scoreDoc.doc,content_field)
         if vector is None: continue
 
         d = dict()
-        allTerms = allTerms.union(map(lambda x: x.encode('utf-8'),vector.getTerms()))
-        for (t,num) in zip(vector.getTerms(),vector.getTermFrequencies()):
+        # a vector is a generator  of tuples -- convert of list
+        # [(u"apple", 3), (u"bear", 2), (u"cab", 2)]
+        #vector = [elt for elt in vector]            
+        #vterms = [elt[0] for elt in vector]
+        #vvalues = [elt[1] for elt in vector]
+        #allTerms = allTerms.union(map(lambda x: x.encode('utf-8'),vterms))        
+#        for (t,num) in zip(vterms,vvalues):
+        for (t,num) in vector:
+            allTerms.add(t.encode('utf-8'))
             d[t.encode('utf-8')] = num
             if t in termsDocs:
                 termsDocs[t.encode('utf-8')] += 1
             else:
                 termsDocs[t.encode('utf-8')] = 1
-        d["txtorg_id"] = doc.get("txtorg_id").encode('utf-8')
+        d["txtorg_id"] = searcher.stored_fields(docnum)["txtorg_id"].encode('utf-8')
         allDicts.append(d)
+        scoreDocs.append(docnum)
     names = set(allTerms)
 
     return scoreDocs, allTerms, allDicts, termsDocs
