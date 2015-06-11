@@ -34,7 +34,6 @@ class IndexFiles(object):
                     contents=TEXT(stored=False,vector=True,analyzer=analyzer()))
         ix = create_in(storeDir, schema)
         writer = ix.writer()
-        print analyzer
         
         print 'document dir is', root
         self.indexDocs(root, writer)
@@ -42,6 +41,9 @@ class IndexFiles(object):
         print 'optimizing index',
         writer.commit(optimize=True)
         print 'done'
+        self.index = ix
+        self.writer = writer
+        self.reader = ix.reader()
 
     def indexDocs(self, root, writer):
         for root, dirnames, filenames in os.walk(root):

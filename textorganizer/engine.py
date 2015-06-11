@@ -11,7 +11,7 @@ from whoosh.fields import Schema, STORED, ID, KEYWORD, TEXT
 
 
 #from . import searchfiles, indexfiles, indexutils, addmetadata
-from . import searchfiles, indexutils, indexfiles
+from . import searchfiles, indexutils, indexfiles, indexCSV
 
 class Corpus:
     scoreDocs = None
@@ -91,7 +91,8 @@ class Worker(threading.Thread):
         
         if exists_in(self.corpus.path):
             ix = open_dir(self.corpus.path)
-        else:            
+        else:
+            # may need to remove this?  how can we have a schema if we don't know the...uh...schema?
             schema = Schema(title=TEXT(stored=True,analyzer=analyzer), content=TEXT(analyzer=analyzer),
                             path=ID(stored=True))
             ix = create_in(self.corpus.path,schema)
@@ -106,39 +107,26 @@ class Worker(threading.Thread):
 
     def import_directory(self, dirname):
         print ">>> ??? <<<"
-        indexfiles.IndexFiles(dirname, self.corpus.path, self.analyzer, self.args_dir)
+        res = indexfiles.IndexFiles(dirname, self.corpus.path, self.analyzer, self.args_dir)
+        self.index = res.index
+        
 
     def import_csv(self, csv_file):
-
         try:
-            writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), self.analyzer, False,
-                                        IndexWriter.MaxFieldLength.LIMITED)
-            changed_rows = addmetadata.add_metadata_from_csv(self.searcher, self.reader, writer, csv_file,self.args_dir,
-                                                             new_files=True)
-            writer.close()
+            res = indexCSV.IndexCSV(self.corpus.path, self.analyzer, csv_file, None, self.args_dir)            
         except UnicodeDecodeError:
-            try:
-                writer.close()
-            except:
-                pass
             self.parent.write({'error': 'CSV import failed: file contained non-unicode characters. Please save the file with UTF-8 encoding and try again!'})
             return
-        self.parent.write({'message': "CSV import complete: %s rows added." % (changed_rows,)})
-
+        self.parent.write({'message': "CSV import complete: {} rows added.".format(res.changed_rows)})
 
     def import_csv_with_content(self, csv_file, content_field):
         try:
-            writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), self.analyzer, False, IndexWriter.MaxFieldLength.LIMITED)
-            changed_rows = addmetadata.add_metadata_and_content_from_csv(self.searcher, self.reader, writer, csv_file, content_field, self.args_dir)
-            writer.close()
+            res = indexCSV.IndexCSV(self.corpus.path, self.analyzer, csv_file, content_field, self.args_dir)            
         except UnicodeDecodeError:
-            try:
-                writer.close()
-            except:
-                pass
             self.parent.write({'error': 'CSV import failed: file contained non-unicode characters. Please save the file with UTF-8 encoding and try again!'})
             return
-        self.parent.write({'message': "CSV import complete: %s rows added." % (changed_rows,)})
+        self.parent.write({'message': "CSV import complete: {} rows added.".format(res.changed_rows)})
+        
 
     def reindex(self):
         writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), self.corpus.analyzer, False, IndexWriter.MaxFieldLength.LIMITED)
