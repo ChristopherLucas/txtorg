@@ -73,13 +73,14 @@ class IndexCSV(object):
                 # i'm so sorry. :(
                 # writer.add_document(txtorg_id=unicode(str(uuid.uuid1()),'UTF-8'),filepath=u'./examples/brothersk/1.txt', book=u'2', chapter=u'2',contents=contents)
                 args = []
+                print row
                 for (i,k) in enumerate(row):
                     args.append(u'{}=u"{}"'.format(header[i],k))
-                    docaddstring = u"writer.add_document(txtorg_id=unicode(str(uuid.uuid1()),'UTF-8'),{},contents=contents)".format(u','.join(args))
-                    print docaddstring
-                    eval(docaddstring)
-                    if len(contents) == 0:
-                        print "warning: no content in %s" % filename
+                docaddstring = u"writer.add_document(txtorg_id=unicode(str(uuid.uuid1()),'UTF-8'),{},contents=contents)".format(u','.join(args))
+                print docaddstring
+                eval(docaddstring)
+                if len(contents) == 0:
+                    print "warning: no content in %s" % filename
                 self.changed_rows += 1
         except Exception, e:
             print "Failed in indexCSV:", e
