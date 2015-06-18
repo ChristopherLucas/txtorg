@@ -35,14 +35,19 @@ class IndexCSV(object):
     """Usage: python IndexFiles <doc_directory>"""
 
     def __init__(self, storeDir, analyzer, csvlocation, content_field = None, args_dir = None):
+        print "Running IndexCSV"
         self.args_dir = args_dir
         if not os.path.exists(storeDir):
             os.mkdir(storeDir)
             
-            
-        schema = Schema(
-            txtorg_id=ID(stored=True),
-            contents=TEXT(stored=False,vector=True,analyzer=analyzer()))
+
+        if content_field is None:
+            schema = Schema(
+                txtorg_id=ID(stored=True),
+                contents=TEXT(stored=False,vector=True,analyzer=analyzer()))
+        else:
+            schema = Schema(
+                txtorg_id=ID(stored=True))
         ix = create_in(storeDir, schema)
         writer = ix.writer()
         # pull the metadata from the csv header to make the schema
@@ -50,25 +55,32 @@ class IndexCSV(object):
         
         ucr = unicode_csv_reader(codecs.open(csvlocation, encoding='UTF-8'), delimiter=',', quotechar='"')
         header = ucr.next()
-        for h in header:
+        for (i,h) in enumerate(header):
             # exclude the path in the schema
             h = h.strip()
             print h
-            writer.add_field(h, ID(stored=True))
-            
+            if content_field is not None and content_field==h:
+                writer.add_field(h, TEXT(stored=False,vector=True,analyzer=analyzer()))
+                ind = i
+            else:
+                writer.add_field(h, ID(stored=True))
+
         self.changed_rows = 0
         try:
             for row in ucr:
                 print row # row is a list.
                 if content_field is not None:
-                    ind = [i for (i,k) in enumerate(mylist) if k==mycheck][0]
-                    contents = unicode(row[ind], 'UTF-8')
+                    print "Import csv with content."
+                    # where is the content_field in the row?
+                    contents = row[ind]
                 else:
                     path = row[0]
                     f = open(path)
+                    # should probably use chardet here...
                     contents = unicode(f.read(), 'UTF-8')
                     contents = preprocess(contents, self.args_dir)
                     f.close()
+                print contents
 
                 # i'm so sorry. :(
                 # writer.add_document(txtorg_id=unicode(str(uuid.uuid1()),'UTF-8'),filepath=u'./examples/brothersk/1.txt', book=u'2', chapter=u'2',contents=contents)
@@ -76,7 +88,10 @@ class IndexCSV(object):
                 print row
                 for (i,k) in enumerate(row):
                     args.append(u'{}=u"{}"'.format(header[i],k))
-                docaddstring = u"writer.add_document(txtorg_id=unicode(str(uuid.uuid1()),'UTF-8'),{},contents=contents)".format(u','.join(args))
+                if content_field is None:
+                    docaddstring = u"writer.add_document(txtorg_id=unicode(str(uuid.uuid1()),'UTF-8'),{},contents=contents)".format(u','.join(args))
+                else:
+                    docaddstring = u"writer.add_document(txtorg_id=unicode(str(uuid.uuid1()),'UTF-8'),{})".format(u','.join(args))
                 print docaddstring
                 eval(docaddstring)
                 if len(contents) == 0:

@@ -120,6 +120,7 @@ class Worker(threading.Thread):
         self.parent.write({'message': "CSV import complete: {} rows added.".format(res.changed_rows)})
 
     def import_csv_with_content(self, csv_file, content_field):
+        print "import_csv_with_content!!!!!!!!"
         try:
             res = indexCSV.IndexCSV(self.corpus.path, self.analyzer, csv_file, content_field, self.args_dir)            
         except UnicodeDecodeError:
@@ -147,9 +148,11 @@ class Worker(threading.Thread):
         try:
             self.parent.write({'status': 'Running whoosh query %s' % (command,)})
             #scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
+            print "running...."
             scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.index, self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
 
         except Exception as e:
+            print 'some error. :('
             self.parent.write({'error': str(e)})
             raise e
 

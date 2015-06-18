@@ -28,7 +28,10 @@ class DictUnicodeWriter(object):
 
         row = {}
         for k, v in D.items():
-            row[k] = v.encode("utf-8")
+            if type(v)=='str':
+                row[k] = v.encode("utf-8")
+            else:
+                row[k] = v
 
         self.writer.writerow(row)
         # Fetch UTF-8 output from the queue ...
@@ -63,7 +66,7 @@ class Ticker(object):
 def run(index, searcher, analyzer, reader, command, content_field="contents"):
 
 
-
+    print 'content_field is', content_field
     """check to see whether the user specified a field"""
     print command
     if command == 'all':
@@ -184,26 +187,11 @@ def write_CTM_TDM(scoreDocs, allDicts, allTerms, termsDocs, searcher, reader, fn
     # writes metadata in CSV format
     all_ids = [d['txtorg_id'] for d in allDicts]
 
-    write_metadata(searcher, reader, all_ids, md_filename)
+    write_metadata(searcher, reader, allDicts, md_filename)
 
-def write_metadata(searcher, reader, document_ids, fname):
-    allFields = set([])
-    docFields = []
-
-    for txtorg_id in document_ids:
-        query = TermQuery(Term('txtorg_id',txtorg_id))
-        scoreDocs = searcher.search(query, reader.maxDoc()).scoreDocs
-        assert len(scoreDocs) == 1
-        scoreDoc = scoreDocs[0]
-        doc = searcher.doc(scoreDoc.doc)
-        df = {}
-        for f in doc.getFields():
-            field = Field.cast_(f)
-            df[field.name()] = field.stringValue()
-        docFields.append(df)
-        allFields = allFields.union(set(df.keys()))
-
-    fields = [u'name',u'path'] + sorted([x for x in allFields if x not in ['name','path']])
+def write_metadata(searcher, reader, allDicts, fname):
+    fields = sorted(allDicts[0].keys())
+    #fields = [u'name',u'path'] + sorted([x for x in allFields if x not in ['name','path']])
 
     with codecs.open(fname, 'w', encoding='UTF-8') as outf:
         dw = DictUnicodeWriter(outf, fields)
@@ -215,7 +203,7 @@ def write_metadata(searcher, reader, document_ids, fname):
         dw.writerow(dhead)
 
         # writing data
-        for d in docFields:
+        for d in allDicts:
             dw.writerow(d)
 
 def write_contents(allDicts, searcher, reader, fname, content_field = "contents"):
