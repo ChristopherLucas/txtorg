@@ -79,6 +79,7 @@ def run(index, searcher, analyzer, reader, command, content_field="contents"):
 
     allDicts = []
     allTerms = set()
+    allMetadata = []
     termsDocs = dict()
 
     scoreDocs = []
@@ -89,6 +90,7 @@ def run(index, searcher, analyzer, reader, command, content_field="contents"):
         if vector is None: continue
 
         d = dict()
+        m = dict()
         # a vector is a generator  of tuples -- convert of list
         # [(u"apple", 3), (u"bear", 2), (u"cab", 2)]
         #vector = [elt for elt in vector]            
@@ -104,11 +106,18 @@ def run(index, searcher, analyzer, reader, command, content_field="contents"):
             else:
                 termsDocs[t.encode('utf-8')] = 1
         d["txtorg_id"] = searcher.stored_fields(docnum)["txtorg_id"].encode('utf-8')
+
+        # Build the metadata
+        for k in searcher.stored_fields(docnum):
+            if k != 'txtorg_id':
+                m[k] = searcher.stored_fields(docnum)[k].encode('utf-8')
         allDicts.append(d)
+        allMetadata.append(m)
         scoreDocs.append(docnum)
     names = set(allTerms)
+    print allMetadata
 
-    return scoreDocs, allTerms, allDicts, termsDocs
+    return scoreDocs, allTerms, allDicts, termsDocs, allMetadata
 
 def filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs):
     import copy
@@ -147,7 +156,9 @@ def writeTDM(allDicts,allTerms,termsDocs,fname,minDocs=0,maxDocs=sys.maxint):
         c.writerow(d)
     f.close()
 
-def write_CTM_TDM(scoreDocs, allDicts, allTerms, termsDocs, searcher, reader, fname, stm_format = False,minDocs=0,maxDocs=sys.maxint):
+def write_CTM_TDM(scoreDocs, allDicts, allTerms,
+                  termsDocs, searcher, reader, allMetadata,
+                  fname, stm_format = False,minDocs=0,maxDocs=sys.maxint):
     allDicts, allTerms = filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs)
     l = list(allTerms)
     l.sort()
@@ -187,12 +198,14 @@ def write_CTM_TDM(scoreDocs, allDicts, allTerms, termsDocs, searcher, reader, fn
     # writes metadata in CSV format
     all_ids = [d['txtorg_id'] for d in allDicts]
 
-    write_metadata(searcher, reader, allDicts, md_filename)
+    
+    write_metadata(allMetadata, md_filename)    
 
-def write_metadata(searcher, reader, allDicts, fname):
-    fields = sorted(allDicts[0].keys())
+def write_metadata(allMetadata, fname):
+    #fields = sorted(allDicts[0].keys())
     #fields = [u'name',u'path'] + sorted([x for x in allFields if x not in ['name','path']])
 
+    fields = allMetadata[0].keys()
     with codecs.open(fname, 'w', encoding='UTF-8') as outf:
         dw = DictUnicodeWriter(outf, fields)
 
@@ -203,7 +216,7 @@ def write_metadata(searcher, reader, allDicts, fname):
         dw.writerow(dhead)
 
         # writing data
-        for d in allDicts:
+        for d in allMetadata:
             dw.writerow(d)
 
 def write_contents(allDicts, searcher, reader, fname, content_field = "contents"):

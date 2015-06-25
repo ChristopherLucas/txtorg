@@ -508,8 +508,8 @@ class txtorgui:
         if content_field is None: return
         self.status.set("Importing CSV; using text field %s" % (content_field,))
         self.corpora[self.corpus_idx].content_field = content_field
-        #c = Worker(self, self.corpora[self.corpus_idx], {'import_csv_with_content': (args_dir['full_file'], content_field)}, args_dir)
-        #c.start()
+        c = Worker(self, self.corpora[self.corpus_idx], {'import_csv_with_content': (args_dir['full_file'], content_field)}, args_dir)
+        c.start()
 
     def open_corpus(self):
         dir_name = tkFileDialog.askdirectory(parent=self.root ,title="Choose an existing Lucene index...")
@@ -605,7 +605,7 @@ class txtorgui:
         self.searchbutton.configure(state=NORMAL)
         self.e.configure(state=NORMAL)
 
-        self.receive_query_results([], [], [],{})
+        self.receive_query_results([], [], [],{},[])
         
         # enable the Corpus menu
         for x in xrange(100):
@@ -676,11 +676,12 @@ class txtorgui:
             val = -1
         self.corpora[self.corpus_idx].maxVal = val
         
-    def receive_query_results(self, scoreDocs, allTerms, allDicts, termsDocs):
+    def receive_query_results(self, scoreDocs, allTerms, allDicts, termsDocs, allMetadata):
         self.corpora[self.corpus_idx].scoreDocs = scoreDocs
         self.corpora[self.corpus_idx].allTerms = allTerms
         self.corpora[self.corpus_idx].allDicts = allDicts
         self.corpora[self.corpus_idx].termsDocs = termsDocs
+        self.corpora[self.corpus_idx].allMetadata = allMetadata
 
         # Update the GUI
         self.docstext.configure(state=NORMAL)

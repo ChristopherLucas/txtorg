@@ -17,6 +17,7 @@ class Corpus:
     scoreDocs = None
     allTerms = None
     allDicts = None
+    allMetadata = None
     termsDocs = None
 
     def __init__(self, path, analyzer_str = None, field_dict = None, content_field = None):
@@ -45,6 +46,7 @@ class Worker(threading.Thread):
         self.action = action
         self.args_dir = args_dir
         self._init_index()
+        self.call = {}
 
         # Make the thread
         super(Worker,self).__init__()
@@ -71,13 +73,18 @@ class Worker(threading.Thread):
             self.export_contents(self.action['export_contents'])
         if "import_directory" in self.action.keys():
             self.import_directory(self.action['import_directory'])
+            self.call={'import_directory':self.action['import_directory']}
         if "import_csv" in self.action.keys():
             self.import_csv(self.action['import_csv'])
+            self.call={'import_csv':self.action['import_csv']}            
         if "import_csv_with_content" in self.action.keys():
             self.import_csv_with_content(*self.action['import_csv_with_content'])
+            self.call={'import_csv_with_content':self.action['import_csv_with_content']}
         if "rebuild_metadata_cache" in self.action.keys():
             self.rebuild_metadata_cache(*self.action['rebuild_metadata_cache'])
         if "reindex" in self.action.keys():
+            print "How we reindex:"
+            print self.call
             self.reindex()
 
 
@@ -149,7 +156,7 @@ class Worker(threading.Thread):
             self.parent.write({'status': 'Running whoosh query %s' % (command,)})
             #scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
             print "running...."
-            scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.index, self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
+            scoreDocs, allTerms, allDicts, termsDocs, allMetadata = searchfiles.run(self.index, self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
 
         except Exception as e:
             print 'some error. :('
@@ -157,17 +164,17 @@ class Worker(threading.Thread):
             raise e
 
         end_time = datetime.datetime.now()
-        self.parent.write({'query_results': (scoreDocs, allTerms, allDicts, termsDocs)})
-#        self.parent.write({'status': 'Query completed in %s seconds' % ((end_time - start_time).microseconds*.000001)})
+        self.parent.write({'query_results': (scoreDocs, allTerms, allDicts, termsDocs, allMetadata)})
+        self.parent.write({'status': 'Query completed in %s seconds' % ((end_time - start_time).microseconds*.000001)})
 
     def export_TDM(self, outfile):
         if self.corpus.scoreDocs is None or self.corpus.allTerms is None or self.corpus.allDicts is None:
             self.parent.write({'error': "No documents selected, please run a query before exporting a TDM."})
             return
 
-
-        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms, self.corpus.termsDocs,self.searcher,
-                                  self.reader, outfile,False,self.corpus.minVal,self.corpus.maxVal)
+        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms,
+                                  self.corpus.termsDocs,self.searcher,self.reader, self.corpus.allMetadata,
+                                  outfile,False,self.corpus.minVal,self.corpus.maxVal)
         self.parent.write({'message': "TDM exported successfully!"})
 
     def export_TDM_csv(self, outfile):
@@ -182,9 +189,12 @@ class Worker(threading.Thread):
         if self.corpus.scoreDocs is None or self.corpus.allTerms is None or self.corpus.allDicts is None:
             self.parent.write({'error': "No documents selected, please run a query before exporting a TDM."})
             return
-
-        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms, self.corpus.termsDocs,self.searcher,
-                                  self.reader, outfile, True,self.corpus.minVal,self.corpus.maxVal)
+        print 'All Terms:'
+        print self.corpus.allTerms
+        print '***************************'
+        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms,
+                                  self.corpus.termsDocs,self.searcher,self.reader, self.corpus.allMetadata,outfile,
+                                  True,self.corpus.minVal,self.corpus.maxVal)
         self.parent.write({'message': "TDM exported successfully!"})
 
     def export_contents(self, outfile):

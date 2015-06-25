@@ -4,9 +4,9 @@ from whoosh.analysis import StandardAnalyzer, SimpleAnalyzer
 
 
 class AnalyzerChooser:
-    def __init__(self):    
-    #def __init__(self, parent):
-        #self.main_gui = parent
+    #def __init__(self):    
+    def __init__(self, parent):
+        self.main_gui = parent
         self.root = Toplevel()
         r = self.root
         r.title('txtorg')
@@ -46,7 +46,7 @@ class AnalyzerChooser:
 
         self.tokentext = Text(cfb)
 
-        self.tokentext.insert(END,"Documents: 0")
+        self.tokentext.insert(END,"Tokens:")
 
         self.tokentext.pack()
 
@@ -82,7 +82,7 @@ class AnalyzerChooser:
         analyzeridx = int(analyzeridx[0])
         analyzer = self.analyzers[analyzeridx]
         analyzerstr = self.analyzerliststr[analyzeridx]
-        #self.main_gui.write({'set_analyzer': (analyzerstr, analyzer)})
+        self.main_gui.write({'set_analyzer': (analyzerstr, analyzer)})
         self.root.destroy()
 
     def cancel(self):

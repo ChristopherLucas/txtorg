@@ -1,29 +1,11 @@
-try:
-    from lucene import QueryParser, IndexSearcher, SimpleFSDirectory, File, VERSION, initVM, Version, IndexReader, Term, BooleanQuery, BooleanClause, TermQuery, Field, IndexWriter, Document
-except:
-    from java.io import File
-    from lucene import initVM
-    from org.apache.lucene.analysis.standard import StandardAnalyzer
-    from org.apache.lucene.index import DirectoryReader
-    from org.apache.lucene.index import Term
-    from org.apache.lucene.document import Field
-    from org.apache.lucene.document import Document
-    from org.apache.lucene.index import IndexReader
-    from org.apache.lucene.index import IndexWriter
-    from org.apache.lucene.queryparser.classic import QueryParser
-    from org.apache.lucene.store import SimpleFSDirectory
-    from org.apache.lucene.search import IndexSearcher
-    from org.apache.lucene.search import BooleanQuery
-    from org.apache.lucene.search import TermQuery
-    from org.apache.lucene.search import BooleanClause
-    from org.apache.lucene.util import Version
-
 import os
 import sys
 import csv
 import codecs
 import uuid
 from preprocessing import *
+
+
 
 def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
     # csv.py doesn't do Unicode; encode temporarily as UTF-8:
