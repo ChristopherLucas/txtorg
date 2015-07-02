@@ -19,6 +19,9 @@ class Corpus:
     allDicts = None
     allMetadata = None
     termsDocs = None
+    content_field = None
+    # save the args_dir for rebuilding the index
+    args_dir_c = None
 
     def __init__(self, path, analyzer_str = None, field_dict = None, content_field = None):
         self.path = path
@@ -83,8 +86,6 @@ class Worker(threading.Thread):
         if "rebuild_metadata_cache" in self.action.keys():
             self.rebuild_metadata_cache(*self.action['rebuild_metadata_cache'])
         if "reindex" in self.action.keys():
-            print "How we reindex:"
-            print self.call
             self.reindex()
 
 
@@ -129,7 +130,7 @@ class Worker(threading.Thread):
     def import_csv_with_content(self, csv_file, content_field):
         print "import_csv_with_content!!!!!!!!"
         try:
-            res = indexCSV.IndexCSV(self.corpus.path, self.analyzer, csv_file, content_field, self.args_dir)            
+            res = indexCSV.IndexCSV(self.corpus.path, self.analyzer, csv_file, content_field, self.args_dir)
         except UnicodeDecodeError:
             self.parent.write({'error': 'CSV import failed: file contained non-unicode characters. Please save the file with UTF-8 encoding and try again!'})
             return
@@ -137,11 +138,25 @@ class Worker(threading.Thread):
         
 
     def reindex(self):
-        writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), self.corpus.analyzer, False, IndexWriter.MaxFieldLength.LIMITED)
-        indexutils.reindex_all(self.reader, writer, self.corpus.analyzer)
-        writer.optimize()
-        writer.close()
-        self.parent.write({'message': "Reindex successful. Corpus analyzer is now set to %s." % (self.corpus.analyzer_str,)})
+        print "Welcome to reindex."
+        print "self.corpus.args_dir_c", self.corpus.args_dir_c
+        print "self.args_dir", self.args_dir
+        print "self.corpus", self.corpus
+        # remove the old index
+        # self._init_index()
+
+        # # create the new index, just like before
+        # args_dir = self.corpus.args_dir_c
+        # print 'args_dir', args_dir
+        # if 'dir' in args_dir:
+        #     self.import_directory(args_dir['dir'])
+        # elif 'file' in args_dir:
+        #     self.import_csv(args_dir['file'])
+        # elif 'full_file' in args_dir:
+        #     self.import_csv_with_content(args_dir['file'],self.corpus.content_field)
+            
+        
+        # self.parent.write({'message': "Reindex successful. Corpus analyzer is now set to %s." % (self.corpus.analyzer_str,)})
         self.parent.write({'status': "Ready!"})
 
     def delete_index(self, cache_filename):
@@ -210,7 +225,10 @@ class Worker(threading.Thread):
 
 
     def rebuild_metadata_cache(self, cache_filename, corpus_directory, delete = False):
-        print "Rebuild?"
+        print "Rebuild."
+        print "self.corpus", self.corpus
+        print "self.corpus.args_dir_c", self.corpus.args_dir_c
+        print "self.corpus.path", self.corpus.path
         print cache_filename
         print corpus_directory
         metadata_dict = indexutils.get_fields_and_values(self.reader)
@@ -250,4 +268,9 @@ class Worker(threading.Thread):
         with codecs.open(cache_filename, 'r', encoding='UTF-8') as outf:
             mystr = outf.read()
         self.parent.write({'rebuild_cache_complete': None})
-        self.parent.write({'message': 'Finished rebuilding cache file.'})  
+        self.parent.write({'message': 'Finished rebuilding cache file.'})
+        print "STILL in rebuild."
+        print "self.corpus", self.corpus
+        print "self.corpus.args_dir_c", self.corpus.args_dir_c
+        print "self.corpus.path", self.corpus.path
+        

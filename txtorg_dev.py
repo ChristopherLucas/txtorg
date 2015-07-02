@@ -471,6 +471,10 @@ class txtorgui:
         self.root.wait_window(d.top)
 
     def rebuild_btn_click(self):
+        print "Rebuild Button Clicked."
+        print "self.corpora[self.corpus_idx].path", self.corpora[self.corpus_idx].path
+        print "self.corpora[self.corpus_idx].args_dir_c", self.corpora[self.corpus_idx].args_dir_c        
+        
         self.status.set("Rebuilding Metadata Cache... This could take a while depending on the size of the corpus.")
         c = Worker(self, self.corpora[self.corpus_idx], {'rebuild_metadata_cache': (self.cache_file, self.corpora[self.corpus_idx].path)})
         c.start()
@@ -483,13 +487,23 @@ class txtorgui:
         c.start()
 
     def set_analyzer(self, analyzer_str, analyzer):
-        self.status.set("Rebuilding Index to use analyzer %s... This could take a while depending on the size of the corpus." % (analyzer_str,))
+        #self.status.set("Rebuilding Index to use analyzer %s... This could take a while depending on the size of the corpus." % (analyzer_str,))
         self.corpora[self.corpus_idx].analyzer = analyzer
         self.corpora[self.corpus_idx].analyzer_str = analyzer_str
-        c = Worker(self, self.corpora[self.corpus_idx], {'reindex': None})
-        c.start()
+        #print "In set_analyzer..."
+        #print "self.corpora[self.corpus_idx].args_dir_c", self.corpora[self.corpus_idx].args_dir_c
+        # Three choices:
+        # * from csv no content
+        # * from csv content
+        # * from directory
+        #c = Worker(self, self.corpora[self.corpus_idx], {'reindex': None})
+        #c.start()
 
     def import_files(self, args_dir):
+        print "In import_files args_dir is", args_dir        
+        self.corpora[self.corpus_idx].args_dir_c = args_dir
+        print "self.corpora[self.corpus_idx]", self.corpora[self.corpus_idx]
+        print "In import_files, self.corpora[self.corpus_idx].args_dir_c is", self.corpora[self.corpus_idx].args_dir_c
         try:
             if 'dir' in args_dir:
                 c = Worker(self, self.corpora[self.corpus_idx], {'import_directory': args_dir['dir']}, args_dir)
@@ -507,8 +521,9 @@ class txtorgui:
     def import_csv_with_content(self, args_dir, content_field):
         if content_field is None: return
         self.status.set("Importing CSV; using text field %s" % (content_field,))
+        # save the content field for reindexing
         self.corpora[self.corpus_idx].content_field = content_field
-        c = Worker(self, self.corpora[self.corpus_idx], {'import_csv_with_content': (args_dir['full_file'], content_field)}, args_dir)
+        c = Worker(self, self.corpora[self.corpus_idx], {'import_csv_with_content': (args_dir['full_file'], content_field)}, args_dir)        
         c.start()
 
     def open_corpus(self):
