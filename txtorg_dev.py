@@ -131,7 +131,7 @@ class ImportDialog:
         Radiobutton(top, text="Import an entire directory", variable=self.choice_var, value=1).grid(row=16, columnspan=2, sticky=W, padx = 3, pady=3)
         Radiobutton(top, text="Import from a CSV file (not including content)", variable=self.choice_var, value=2).grid(row=17, columnspan=2, sticky=W, padx = 3, pady=3)
         Radiobutton(top, text="Import from a CSV file (including content)", variable=self.choice_var, value=3).grid(row=18, columnspan=2, sticky=W, padx = 3, pady=3)
-        b = Button(top, text="OK", command=self.ok)
+        b = Button(top, text="OK", command=self.importandanalyze)
         b.grid(row=19, column=1, sticky = E, padx = 3, pady=3)
             
     def select_dict(self):
@@ -173,6 +173,12 @@ class ImportDialog:
                        'script_filename':self.script_filename}) 
         self.top.destroy()
 
+    def importandanalyze(self):
+        self.ok()
+        # call the txtorgui's change_analyzer function
+        # self.top.change_analyzer()
+        
+            
 class SaveTDMDialog:
     def __init__(self, parent, callback):
         self.parent = parent
@@ -296,7 +302,7 @@ class txtorgui:
         self.menubar.add_cascade(label="Corpus", menu=self.menu_c, font=self.customFont)
         self.menu_c.add_command(label="Import Documents...", command=self.import_btn_click, font=self.customFont, state=DISABLED)
         self.menu_c.add_command(label="Rebuild Index File...", command=self.rebuild_btn_click, font=self.customFont, state=DISABLED)
-        self.menu_c.add_command(label="Change Analyzer...", command=self.change_analyzer, font=self.customFont, state=DISABLED)
+        #self.menu_c.add_command(label="Change Analyzer...", command=self.change_analyzer, font=self.customFont, state=DISABLED)
         self.menu_c.add_command(label="Delete Corpus...", command=self.delete_corpus, font=self.customFont, state=DISABLED)
 
 
@@ -467,6 +473,13 @@ class txtorgui:
         
 
     def import_btn_click(self):
+        print "starting the changer."        
+        changer = self.change_analyzer()
+        print "Root, about to wait to close:", changer.root
+        self.root.wait_window(changer.root)
+        
+        # 
+        print "done waiting? 123"
         d = ImportDialog(self.root, self.import_files)
         self.root.wait_window(d.top)
 
@@ -481,6 +494,7 @@ class txtorgui:
 
     def change_analyzer(self):
         analyzer_gui = AnalyzerChooser(self)
+        return analyzer_gui
 
     def delete_corpus(self):
         c = Worker(self, self.corpora[self.corpus_idx], {'delete': self.cache_file})

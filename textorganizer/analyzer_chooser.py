@@ -2,17 +2,25 @@ from Tkinter import *
 import time, thread, threading
 from whoosh.analysis import StandardAnalyzer, SimpleAnalyzer
 
+# Next time?  http://textminingonline.com/dive-into-nltk-part-vi-add-stanford-word-segmenter-interface-for-python-nltk
+
 
 class AnalyzerChooser:
     #def __init__(self):    
     def __init__(self, parent):
         self.main_gui = parent
-        self.root = Toplevel()
+        #self.root = Toplevel()
+        self.root = Toplevel(parent.root)        
         r = self.root
-        r.title('txtorg')
+
+        print 'parent', parent
+        print 'root', r
+        
+        r.title('Choose your Analyzer')
 
         self.analyzers = [StandardAnalyzer, SimpleAnalyzer]
-        self.analyzerliststr = ['StandardAnalyzer', "SimpleAnalyzer"]
+        self.analyzerliststr = ['English StandardAnalyzer', "English SimpleAnalyzer"]
+        print whoosh.lang.languages
 
         f = PanedWindow(r, showhandle=True)
         lf = PanedWindow(f, relief=GROOVE, borderwidth=2,showhandle=True)
@@ -72,7 +80,8 @@ class AnalyzerChooser:
         # poll for changes in the list
         self.current = None
         self.poll()
-        self.root.mainloop()
+        #self.root.mainloop()
+        print "Done?? 999"
 
     def ok(self):
         analyzeridx = self.analyzerlist.curselection() # was curselection
@@ -83,7 +92,9 @@ class AnalyzerChooser:
         analyzer = self.analyzers[analyzeridx]
         analyzerstr = self.analyzerliststr[analyzeridx]
         self.main_gui.write({'set_analyzer': (analyzerstr, analyzer)})
+        print "self.root:", self.root
         self.root.destroy()
+        print 'Destroyed analyzer chooser'
 
     def cancel(self):
         self.root.destroy()
