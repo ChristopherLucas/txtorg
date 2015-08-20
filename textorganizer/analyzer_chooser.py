@@ -194,7 +194,3 @@ class AnalyzerThread(threading.Thread):
 
 if __name__ == "__main__":
     ac = AnalyzerChooser()
-
-ChineseAnalyzer
-
-
