@@ -1,6 +1,9 @@
 from Tkinter import *
 import time, thread, threading
-from whoosh.analysis import StandardAnalyzer, SimpleAnalyzer
+from whoosh.analysis import StandardAnalyzer, SimpleAnalyzer, StopFilter
+import whoosh
+from chinese import ChineseAnalyzer
+from collections import defaultdict
 
 # Next time?  http://textminingonline.com/dive-into-nltk-part-vi-add-stanford-word-segmenter-interface-for-python-nltk
 
@@ -18,9 +21,18 @@ class AnalyzerChooser:
         
         r.title('Choose your Analyzer')
 
-        self.analyzers = [StandardAnalyzer, SimpleAnalyzer]
-        self.analyzerliststr = ['English StandardAnalyzer', "English SimpleAnalyzer"]
-        print whoosh.lang.languages
+        self.analyzers = [StandardAnalyzer, SimpleAnalyzer, ChineseAnalyzer]
+        self.analyzerliststr = ['English StandardAnalyzer', "English SimpleAnalyzer", "SnowNLP Chinese"]
+        # hardcoded, :(
+        langs = whoosh.lang.languages
+        #langs = ('ar', 'da', 'nl', 'fi', 'fr', 'de', 'hu', 'it', 'no', 'pt', 'ro', 'ru', 'es', 'sv', 'tr')
+        aliases = ('Arabic','Danish','Dutch','English','Finnish','French','German','Hungarian','Italian','Norwegian','Portuguese','Romanian','Russian','Spanish','Swedish','Turkish')
+
+        for (l,a) in zip(langs,aliases):
+            self.analyzerliststr.append(a + ' Analyzer (Whoosh)')
+            self.analyzers.append(lambda: whoosh.analysis.LanguageAnalyzer(l))
+
+
 
         f = PanedWindow(r, showhandle=True)
         lf = PanedWindow(f, relief=GROOVE, borderwidth=2,showhandle=True)
@@ -182,3 +194,7 @@ class AnalyzerThread(threading.Thread):
 
 if __name__ == "__main__":
     ac = AnalyzerChooser()
+
+ChineseAnalyzer
+
+
