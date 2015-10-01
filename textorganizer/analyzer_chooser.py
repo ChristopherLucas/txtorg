@@ -3,9 +3,55 @@ import time, thread, threading
 from whoosh.analysis import StandardAnalyzer, SimpleAnalyzer, StopFilter
 import whoosh
 from chinese import ChineseAnalyzer
+from arabic import ArabicAnalyzer
 from collections import defaultdict
 
 # Next time?  http://textminingonline.com/dive-into-nltk-part-vi-add-stanford-word-segmenter-interface-for-python-nltk
+
+try:
+    import lucene
+    haslucene = True
+    from fromlucene import LuceneTokenizer
+    from org.apache.lucene.analysis.ar import ArabicAnalyzer as AA_lucene
+    from org.apache.lucene.analysis.hy import ArmenianAnalyzer
+    from org.apache.lucene.analysis.eu import BasqueAnalyzer
+    from org.apache.lucene.analysis.br import BrazilianAnalyzer
+    from org.apache.lucene.analysis.bg import BulgarianAnalyzer
+    from org.apache.lucene.analysis.ca import CatalanAnalyzer
+    from org.apache.lucene.analysis.cjk import CJKAnalyzer
+    from org.apache.lucene.analysis.standard import ClassicAnalyzer
+    from org.apache.lucene.analysis.cz import CzechAnalyzer
+    from org.apache.lucene.analysis.da import DanishAnalyzer
+    from org.apache.lucene.analysis.en import EnglishAnalyzer
+    from org.apache.lucene.analysis.fi import FinnishAnalyzer
+    from org.apache.lucene.analysis.fr import FrenchAnalyzer
+    from org.apache.lucene.analysis.gl import GalicianAnalyzer
+    from org.apache.lucene.analysis.de import GermanAnalyzer
+    from org.apache.lucene.analysis.el import GreekAnalyzer
+    from org.apache.lucene.analysis.hi import HindiAnalyzer
+    from org.apache.lucene.analysis.hu import HungarianAnalyzer
+    from org.apache.lucene.analysis.id import IndonesianAnalyzer
+    from org.apache.lucene.analysis.ga import IrishAnalyzer
+    from org.apache.lucene.analysis.it import ItalianAnalyzer
+    from org.apache.lucene.analysis.lv import LatvianAnalyzer
+    from org.apache.lucene.analysis.no import NorwegianAnalyzer
+    from org.apache.lucene.analysis.fa import PersianAnalyzer
+    from org.apache.lucene.analysis.pt import PortugueseAnalyzer
+    from org.apache.lucene.analysis.ro import RomanianAnalyzer
+    from org.apache.lucene.analysis.ru import RussianAnalyzer
+    from org.apache.lucene.analysis.ckb import SoraniAnalyzer
+    from org.apache.lucene.analysis.es import SpanishAnalyzer
+    from org.apache.lucene.analysis.standard import StandardAnalyzer as SA_Lucene
+    from org.apache.lucene.analysis.core import StopAnalyzer
+    from org.apache.lucene.analysis.sv import SwedishAnalyzer
+    from org.apache.lucene.analysis.th import ThaiAnalyzer
+    from org.apache.lucene.analysis.tr import TurkishAnalyzer
+    from org.apache.lucene.analysis.standard import UAX29URLEmailAnalyzer
+
+    lucenelist = ['Arabic Analyzer', 'Armenian Analyzer', 'Basque Analyzer', 'Brazilian Analyzer', 'Bulgarian Analyzer', 'Catalan Analyzer', 'CJK Analyzer', 'Classic Analyzer', 'Czech Analyzer', 'Danish Analyzer', 'English Analyzer', 'Finnish Analyzer', 'French Analyzer', 'Galician Analyzer', 'German Analyzer', 'Greek Analyzer', 'Hindi Analyzer', 'Hungarian Analyzer', 'Indonesian Analyzer', 'Irish Analyzer', 'Italian Analyzer', 'Latvian Analyzer', 'Norwegian Analyzer', 'Persian Analyzer', 'Portuguese Analyzer', 'Romanian Analyzer', 'Russian Analyzer', 'Sorani Analyzer', 'Spanish Analyzer', 'Standard Analyzer', 'Stop Analyzer', 'Swedish Analyzer', 'Thai Analyzer', 'Turkish Analyzer', 'UAX29URLEmail Analyzer']
+    lucenefs = [AA_lucene,ArmenianAnalyzer,BasqueAnalyzer,BrazilianAnalyzer,BulgarianAnalyzer,CatalanAnalyzer,CJKAnalyzer,ClassicAnalyzer,CzechAnalyzer,DanishAnalyzer,EnglishAnalyzer,FinnishAnalyzer,FrenchAnalyzer,GalicianAnalyzer,GermanAnalyzer,GreekAnalyzer,HindiAnalyzer,HungarianAnalyzer,IndonesianAnalyzer,IrishAnalyzer,ItalianAnalyzer,LatvianAnalyzer,NorwegianAnalyzer,PersianAnalyzer,PortugueseAnalyzer,RomanianAnalyzer,RussianAnalyzer,SoraniAnalyzer,SpanishAnalyzer,SA_Lucene,StopAnalyzer,SwedishAnalyzer,ThaiAnalyzer,TurkishAnalyzer,UAX29URLEmailAnalyzer]
+except:
+    haslucene = False
 
 
 class AnalyzerChooser:
@@ -21,8 +67,8 @@ class AnalyzerChooser:
         
         r.title('Choose your Analyzer')
 
-        self.analyzers = [StandardAnalyzer, SimpleAnalyzer, ChineseAnalyzer]
-        self.analyzerliststr = ['English StandardAnalyzer', "English SimpleAnalyzer", "SnowNLP Chinese"]
+        self.analyzers = [StandardAnalyzer, SimpleAnalyzer, ChineseAnalyzer, ArabicAnalyzer]
+        self.analyzerliststr = ['English StandardAnalyzer', "English SimpleAnalyzer", "SnowNLP Chinese", "Nielsen Arabic Analyzer"]
         # hardcoded, :(
         langs = whoosh.lang.languages
         #langs = ('ar', 'da', 'nl', 'fi', 'fr', 'de', 'hu', 'it', 'no', 'pt', 'ro', 'ru', 'es', 'sv', 'tr')
@@ -30,10 +76,16 @@ class AnalyzerChooser:
 
         for (l,a) in zip(langs,aliases):
             self.analyzerliststr.append(a + ' Analyzer (Whoosh)')
-            self.analyzers.append(lambda: whoosh.analysis.LanguageAnalyzer(l))
+            self.analyzers.append(whoosh.analysis.LanguageAnalyzer(l))
 
+        if haslucene:
+            for (name,fn) in zip(lucenelist,lucenefs):
+                print name, fn
+                self.analyzerliststr.append(name + ' (Lucene)')
+                self.analyzers.append(LuceneTokenizer(fn))
 
-
+        print self.analyzers
+                
         f = PanedWindow(r, showhandle=True)
         lf = PanedWindow(f, relief=GROOVE, borderwidth=2,showhandle=True)
         f.pack(fill=BOTH,expand=1)
@@ -101,8 +153,11 @@ class AnalyzerChooser:
             self.cancel()
             return
         analyzeridx = int(analyzeridx[0])
-        analyzer = self.analyzers[analyzeridx]
         analyzerstr = self.analyzerliststr[analyzeridx]
+        if 'Lucene' in analyzerstr or 'Whoosh' in analyzerstr:
+            analyzer = lambda: self.analyzers[analyzeridx]
+        else:
+            analyzer = self.analyzers[analyzeridx]
         self.main_gui.write({'set_analyzer': (analyzerstr, analyzer)})
         print "self.root:", self.root
         self.root.destroy()
@@ -136,10 +191,19 @@ class AnalyzerChooser:
         self.tokentext.delete(1.0,END)
         self.tokentext.insert(END,"Tokens: ")
 
-        analyzerstr = self.analyzerlist.curselection() # was curselection
-        if len(analyzerstr)==0:
+        analyzeridx = self.analyzerlist.curselection() # was curselection        
+        if len(analyzeridx)==0:
             return
-        analyzer = self.analyzers[int(analyzerstr[0])]
+        analyzeridx = int(analyzeridx[0])
+        analyzerstr = self.analyzerliststr[analyzeridx]
+        if 'Lucene' in analyzerstr or 'Whoosh' in analyzerstr:
+            analyzer = lambda: self.analyzers[analyzeridx]
+        else:
+            analyzer = self.analyzers[analyzeridx]
+        
+        #print analyzer
+        #print int(analyzerstr[0])
+        #print analyzer
 
         print "Selected analyzer"
 
