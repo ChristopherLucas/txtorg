@@ -4,7 +4,23 @@ layout: default
 <section>
   <h1>
     <a name="windows-installation" class="anchor" href="#windows-installation"><span class="octicon octicon-link"></span></a>Windows installation</h1>
-  <p>To install txtorg on a Windows machine, follow the steps below. If you need to update to the latest version, <a href="http://txtorg.org/windows.html#windows-update">skip to the next section</a>.</p>
+  <p>To install the Whoosh version of txtorg, simply follow these short instructions.</p>
+
+  <ol>
+    <li><a href="https://www.python.org/download/releases/2.7.6/">Install Python</a> (ideally 2.7 but definitely not 3.x)</li>
+    <li>To <a href="http://docs.python.org/2/install/#standard-build-and-install">install the package</a>,
+      first open a command prompt (Start > All Programs > Accessories > Command Prompt). Next, navigate to the directory "ChristopherLucas-txtorg-4dbad8b". To do so, use the
+      cd command, followed by the full path to the directory. Then, install the package with the command setup.py install. These steps are show in the code block below.</li>
+  
+<pre><code>$ cd this_is_where/I_unzipped_the_file/ChristopherLucas-txtorg-4dbad8b # Navigate to the folder 
+$ setup.py install
+</code></pre>
+    <li>Open the directory where you unzipped the file, go to bin, and rename txtorg to txtorg.py. Double click this file to run txtorg.</li>
+  </ol>  
+<p>And that should do it!</p>
+
+<p>To extend txtorg to use with Lucene as well as Whoosh, follow the following steps instead.</p>
+
   <ol>
     <li><a href="https://www.python.org/download/releases/2.7.6/">Install Python</a> (ideally 2.7 but definitely not 3.x)</li>
     <li>Install setuptools: Download <a href="https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py">https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py</a> and double-click it! This will install easy_install.exe, which you'll need in step 5.</li>

@@ -6,14 +6,20 @@ layout: default
   <h1>
     <a name="welcome-to-txtorg" class="anchor" href="#welcome-to-txtorg"><span class="octicon octicon-link"></span></a>Index-based text management</h1>
   
-  <p>txtorg is a Python-based utility that leverages Apache Lucene to facilitate text preprocessing and management. It outputs processed text 
-    in a variety of formats for use in a wide array of analytical software, including (but not limited to) the 
+  <p>txtorg is a Python-based utility that leverages Whoosh and Apache
+    Lucene to facilitate text preprocessing and management. In the
+    newest version (released Winter 2016), users can use a pure-Python
+    version of txtorg that relies on Whoosh, while those in need of
+    especially fast processing or additional language support can
+    install Lucene to use with txtorg. txtorg outputs processed text
+    in a variety of formats for use in a wide array of analytical
+    software, including (but not limited to) the
     <a href="http://scholar.harvard.edu/files/dtingley/files/topicmodelsopenendedexperiments.pdf">structural
       topic model</a>.  It scales to large corpora and has a graphical
-      user interface that anyone can use. With Lucene, txtorg can
-      support a wide range of languages. For more information on
-      txtorg and text analysis, especially (but not exclusively) with
-      data in political science, we point users to a
+      user interface that anyone can use. With Lucene and Whoosh,
+      txtorg can support a wide range of languages. For more
+      information on txtorg and text analysis, especially (but not
+      exclusively) with data in political science, we point users to a
     <a href="http://scholar.harvard.edu/files/dtingley/files/comparativepoliticstext.pdf">working
       paper</a> that describes the software and various applications
       in greater detail.</p>
@@ -25,10 +31,13 @@ layout: default
     <h1>
       <a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h1>
 
-  <p>To use txtorg, you must first install several dependencies. We've
-    done our best to simplify and document the installation process
-    for Linux, Windows, and Mac, but if you have any trouble with the
-    installation or if you have ideas for improving it,
+  <p>In response to demand for software with fewer dependencies, we've
+    updated txtorg so that users need only install txtorg in order to
+    utilize its base functionality. Users may extend txtorg
+    functionality by also installing whoosh. We've done our best to
+    simplify and document the installation process for Linux, Windows,
+    and Mac, but if you have any trouble with the installation or if
+    you have ideas for improving it,
     <a href="mailto:lucas.christopherd@gmail.com">send Chris an email</a>! Your feedback is very helpful.</p>
   
   <p>Please find the appropriate installation instructions for your system below.</p>
