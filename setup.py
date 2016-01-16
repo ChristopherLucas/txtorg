@@ -12,6 +12,5 @@ setup(
     scripts=['bin/txtorg'],
     license='LICENSE.txt',
     description='Tool to make organizing data for textual analysis easy and scalable',
-    long_description=open('README.txt').read(),
     install_requires=['chardet', 'snownlp'],
 )
