@@ -62,9 +62,6 @@ class AnalyzerChooser:
         self.root = Toplevel(parent.root)        
         r = self.root
 
-        print 'parent', parent
-        print 'root', r
-        
         r.title('Choose your Analyzer')
 
         self.analyzers = [StandardAnalyzer, SimpleAnalyzer, ChineseAnalyzer, ArabicAnalyzer]
@@ -83,8 +80,6 @@ class AnalyzerChooser:
                 print name, fn
                 self.analyzerliststr.append(name + ' (Lucene)')
                 self.analyzers.append(LuceneTokenizer(fn))
-
-        print self.analyzers
                 
         f = PanedWindow(r, showhandle=True)
         lf = PanedWindow(f, relief=GROOVE, borderwidth=2,showhandle=True)
@@ -145,7 +140,6 @@ class AnalyzerChooser:
         self.current = None
         self.poll()
         #self.root.mainloop()
-        print "Done?? 999"
 
     def ok(self):
         analyzeridx = self.analyzerlist.curselection() # was curselection
@@ -159,9 +153,7 @@ class AnalyzerChooser:
         else:
             analyzer = self.analyzers[analyzeridx]
         self.main_gui.write({'set_analyzer': (analyzerstr, analyzer)})
-        print "self.root:", self.root
         self.root.destroy()
-        print 'Destroyed analyzer chooser'
 
     def cancel(self):
         self.root.destroy()
@@ -215,7 +207,6 @@ class AnalyzerChooser:
 
         if len(self.e.get())>0:
             print 'Analyzer:', analyzer
-            print 'self.e.get, whatever that is:', self.e.get()            
             athread = AnalyzerThread(analyzer,unicode(self.e.get()))
             athread.start()
             athread.join()

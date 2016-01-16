@@ -12,14 +12,9 @@ import time
 import re
 import csv
 
-try:
-    import lucene
-    print "Pylucene found, using Lucene version %s" %(lucene.VERSION,)
-except:
-    sys.exit("PyLucene import failure. Check your JDK and your Lucene install. Aborting")
-
-from textorganizer.engine import Corpus, Worker
 from textorganizer.analyzer_chooser import AnalyzerChooser
+from textorganizer.engine import Corpus, Worker
+
 import Queue
 from functools import partial
 
@@ -66,7 +61,7 @@ class ImportDialog:
             'SHIFT_JIS', 
             'ISO-2022-JP', 
             'EUC-KR', 
-            'ISO-2022-KR',            
+            'ISO-2022-KR',
             'KOI8-R', 
             'MacCyrillic', 
             'IBM855', 
@@ -136,7 +131,7 @@ class ImportDialog:
         Radiobutton(top, text="Import an entire directory", variable=self.choice_var, value=1).grid(row=16, columnspan=2, sticky=W, padx = 3, pady=3)
         Radiobutton(top, text="Import from a CSV file (not including content)", variable=self.choice_var, value=2).grid(row=17, columnspan=2, sticky=W, padx = 3, pady=3)
         Radiobutton(top, text="Import from a CSV file (including content)", variable=self.choice_var, value=3).grid(row=18, columnspan=2, sticky=W, padx = 3, pady=3)
-        b = Button(top, text="OK", command=self.ok)
+        b = Button(top, text="OK", command=self.importandanalyze)
         b.grid(row=19, column=1, sticky = E, padx = 3, pady=3)
             
     def select_dict(self):
@@ -178,6 +173,12 @@ class ImportDialog:
                        'script_filename':self.script_filename}) 
         self.top.destroy()
 
+    def importandanalyze(self):
+        self.ok()
+        # call the txtorgui's change_analyzer function
+        # self.top.change_analyzer()
+        
+            
 class SaveTDMDialog:
     def __init__(self, parent, callback):
         self.parent = parent
@@ -281,10 +282,9 @@ class txtorgui:
         self.root = Tk()
         self.customFont = tkFont.Font(family="Verdana", size=10)
         self.smallFont = tkFont.Font(family="Verdana", size=8)
-        self.queue = Queue.Queue()
-        lucene.initVM()
+        self.queue = Queue.Queue()        
         self.update()
-        self.root.title('Text Organizer - Powered by Apache Lucene version %s' % (lucene.VERSION,))
+        self.root.title('Text Organizer - Powered by Whoosh!')
         f = Frame(self.root, width=800, height=110,bg= "#%02x%02x%02x" % (78,78,78))
         lf = Frame(f, relief=GROOVE, borderwidth=2)
         Label(lf, text="Corpus", font=self.customFont).pack(pady=2,padx=2)
@@ -302,7 +302,7 @@ class txtorgui:
         self.menubar.add_cascade(label="Corpus", menu=self.menu_c, font=self.customFont)
         self.menu_c.add_command(label="Import Documents...", command=self.import_btn_click, font=self.customFont, state=DISABLED)
         self.menu_c.add_command(label="Rebuild Index File...", command=self.rebuild_btn_click, font=self.customFont, state=DISABLED)
-        self.menu_c.add_command(label="Change Analyzer...", command=self.change_analyzer, font=self.customFont, state=DISABLED)
+        #self.menu_c.add_command(label="Change Analyzer...", command=self.change_analyzer, font=self.customFont, state=DISABLED)
         self.menu_c.add_command(label="Delete Corpus...", command=self.delete_corpus, font=self.customFont, state=DISABLED)
 
 
@@ -418,6 +418,7 @@ class txtorgui:
         try:
             while True:
                 line = self.queue.get_nowait()
+                #line = {}
                 if 'query_results' in line.keys():
                     self.receive_query_results(*line['query_results'])
                 if 'error' in line.keys():
@@ -435,7 +436,6 @@ class txtorgui:
                     self.status.set(line['status'])
         except Queue.Empty:
             pass
-
         self.root.after(100, self.update)
 
     def show_error(self,message):
@@ -464,34 +464,57 @@ class txtorgui:
         new_index_path = os.path.join(dir_name, good_corpus_name)
 
         # For now, assume it new corpuses use StandardAnalyzer
+        print "Trying to make new corpus"
         c = Corpus(new_index_path, analyzer_str=None)
         w = Worker(self, c, {'rebuild_metadata_cache': (self.cache_file, c.path)})
+        print "Trying to start the thread"
         w.start()
+        print "Said w.start"
+        
 
     def import_btn_click(self):
+        changer = self.change_analyzer()
+        self.root.wait_window(changer.root)
+        
+        # 
         d = ImportDialog(self.root, self.import_files)
         self.root.wait_window(d.top)
 
     def rebuild_btn_click(self):
+        print "Rebuild Button Clicked."
+        print "self.corpora[self.corpus_idx].path", self.corpora[self.corpus_idx].path
+        print "self.corpora[self.corpus_idx].args_dir_c", self.corpora[self.corpus_idx].args_dir_c        
+        
         self.status.set("Rebuilding Metadata Cache... This could take a while depending on the size of the corpus.")
         c = Worker(self, self.corpora[self.corpus_idx], {'rebuild_metadata_cache': (self.cache_file, self.corpora[self.corpus_idx].path)})
         c.start()
 
     def change_analyzer(self):
         analyzer_gui = AnalyzerChooser(self)
+        return analyzer_gui
 
     def delete_corpus(self):
         c = Worker(self, self.corpora[self.corpus_idx], {'delete': self.cache_file})
         c.start()
 
     def set_analyzer(self, analyzer_str, analyzer):
-        self.status.set("Rebuilding Index to use analyzer %s... This could take a while depending on the size of the corpus." % (analyzer_str,))
+        #self.status.set("Rebuilding Index to use analyzer %s... This could take a while depending on the size of the corpus." % (analyzer_str,))
         self.corpora[self.corpus_idx].analyzer = analyzer
         self.corpora[self.corpus_idx].analyzer_str = analyzer_str
-        c = Worker(self, self.corpora[self.corpus_idx], {'reindex': None})
-        c.start()
+        #print "In set_analyzer..."
+        #print "self.corpora[self.corpus_idx].args_dir_c", self.corpora[self.corpus_idx].args_dir_c
+        # Three choices:
+        # * from csv no content
+        # * from csv content
+        # * from directory
+        #c = Worker(self, self.corpora[self.corpus_idx], {'reindex': None})
+        #c.start()
 
     def import_files(self, args_dir):
+        print "In import_files args_dir is", args_dir        
+        self.corpora[self.corpus_idx].args_dir_c = args_dir
+        print "self.corpora[self.corpus_idx]", self.corpora[self.corpus_idx]
+        print "In import_files, self.corpora[self.corpus_idx].args_dir_c is", self.corpora[self.corpus_idx].args_dir_c
         try:
             if 'dir' in args_dir:
                 c = Worker(self, self.corpora[self.corpus_idx], {'import_directory': args_dir['dir']}, args_dir)
@@ -509,8 +532,9 @@ class txtorgui:
     def import_csv_with_content(self, args_dir, content_field):
         if content_field is None: return
         self.status.set("Importing CSV; using text field %s" % (content_field,))
+        # save the content field for reindexing
         self.corpora[self.corpus_idx].content_field = content_field
-        c = Worker(self, self.corpora[self.corpus_idx], {'import_csv_with_content': (args_dir['full_file'], content_field)}, args_dir)
+        c = Worker(self, self.corpora[self.corpus_idx], {'import_csv_with_content': (args_dir['full_file'], content_field)}, args_dir)        
         c.start()
 
     def open_corpus(self):
@@ -522,9 +546,9 @@ class txtorgui:
             self.show_error('Selected directory is not a Lucene index. Choose an existing index or create a new index with File + "New Corpus".')
             return
 
-        c = Corpus(dir_name)
-        w = Worker(self, c, {'rebuild_metadata_cache': (self.cache_file, c.path)})
-        w.start()
+        #c = Corpus(dir_name)
+        #w = Worker(self, c, {'rebuild_metadata_cache': (self.cache_file, c.path)})
+        #w.start()
 
 
     def updateCorpus(self):
@@ -590,7 +614,7 @@ class txtorgui:
             return selected_corpora[0]
             
     def update_md_fields(self):
-        """update the metadata field to reflect the tags from the selected corpus"""                
+        """update the metadata field to reflect the tags from the selected corpus"""
 
         self.corpus_idx = self.getCorpus()
         if self.corpus_idx is None:
@@ -607,7 +631,7 @@ class txtorgui:
         self.searchbutton.configure(state=NORMAL)
         self.e.configure(state=NORMAL)
 
-        self.receive_query_results([], [], [],{})
+        self.receive_query_results([], [], [],{},[])
         
         # enable the Corpus menu
         for x in xrange(100):
@@ -652,8 +676,8 @@ class txtorgui:
         if fileName == "" or fileName == ():
             return
 
-        c = Worker(self, self.corpora[self.corpus_idx], {'export_contents': fileName})
-        c.start()
+        #c = Worker(self, self.corpora[self.corpus_idx], {'export_contents': fileName})
+        #c.start()
 
     def runQuery(self):
         """runs a query using the run_searcher method of the active Corpus"""
@@ -661,7 +685,7 @@ class txtorgui:
         c = Worker(self, self.corpora[self.corpus_idx], {'search': self.e.get().strip()})
         c.start()
 
-        # self.corpora[self.corpus_idx].run_searcher(self.e.get().strip())
+        #self.corpora[self.corpus_idx].run_searcher(self.e.get().strip())
 
 
     # callbacks for changing the values
@@ -678,11 +702,12 @@ class txtorgui:
             val = -1
         self.corpora[self.corpus_idx].maxVal = val
         
-    def receive_query_results(self, scoreDocs, allTerms, allDicts, termsDocs):
+    def receive_query_results(self, scoreDocs, allTerms, allDicts, termsDocs, allMetadata):
         self.corpora[self.corpus_idx].scoreDocs = scoreDocs
         self.corpora[self.corpus_idx].allTerms = allTerms
         self.corpora[self.corpus_idx].allDicts = allDicts
         self.corpora[self.corpus_idx].termsDocs = termsDocs
+        self.corpora[self.corpus_idx].allMetadata = allMetadata
 
         # Update the GUI
         self.docstext.configure(state=NORMAL)

@@ -57,10 +57,8 @@ class Worker(threading.Thread):
     def run(self):
 
         # Start the thread
-        print "Trying to start thread?! From worker.run"
         #super(Worker,self).start()
         #super(Worker,self).join()                
-        print self.action
         # yeah, this should be refactored
         if "search" in self.action.keys():
             self.run_searcher(self.action['search'])
@@ -114,7 +112,6 @@ class Worker(threading.Thread):
         #self.analyzer = self.corpus.analyzer
 
     def import_directory(self, dirname):
-        print ">>> ??? <<<"
         res = indexfiles.IndexFiles(dirname, self.corpus.path, self.analyzer, self.args_dir)
         self.index = res.index
         
@@ -128,7 +125,6 @@ class Worker(threading.Thread):
         self.parent.write({'message': "CSV import complete: {} rows added.".format(res.changed_rows)})
 
     def import_csv_with_content(self, csv_file, content_field):
-        print "import_csv_with_content!!!!!!!!"
         try:
             res = indexCSV.IndexCSV(self.corpus.path, self.analyzer, csv_file, content_field, self.args_dir)
         except UnicodeDecodeError:
@@ -138,10 +134,6 @@ class Worker(threading.Thread):
         
 
     def reindex(self):
-        print "Welcome to reindex."
-        print "self.corpus.args_dir_c", self.corpus.args_dir_c
-        print "self.args_dir", self.args_dir
-        print "self.corpus", self.corpus
         # remove the old index
         # self._init_index()
 
@@ -170,11 +162,9 @@ class Worker(threading.Thread):
         try:
             self.parent.write({'status': 'Running whoosh query %s' % (command,)})
             #scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
-            print "running...."
             scoreDocs, allTerms, allDicts, termsDocs, allMetadata = searchfiles.run(self.index, self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
 
         except Exception as e:
-            print 'some error. :('
             self.parent.write({'error': str(e)})
             raise e
 
@@ -204,9 +194,6 @@ class Worker(threading.Thread):
         if self.corpus.scoreDocs is None or self.corpus.allTerms is None or self.corpus.allDicts is None:
             self.parent.write({'error': "No documents selected, please run a query before exporting a TDM."})
             return
-        print 'All Terms:'
-        print self.corpus.allTerms
-        print '***************************'
         searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms,
                                   self.corpus.termsDocs,self.searcher,self.reader, self.corpus.allMetadata,outfile,
                                   True,self.corpus.minVal,self.corpus.maxVal)
@@ -225,12 +212,6 @@ class Worker(threading.Thread):
 
 
     def rebuild_metadata_cache(self, cache_filename, corpus_directory, delete = False):
-        print "Rebuild."
-        print "self.corpus", self.corpus
-        print "self.corpus.args_dir_c", self.corpus.args_dir_c
-        print "self.corpus.path", self.corpus.path
-        print cache_filename
-        print corpus_directory
         metadata_dict = indexutils.get_fields_and_values(self.reader)
         # finds the section of the old file to overwrite, and stores the old file in memory.
         # if delete is True, it will remove the index from the file
@@ -249,7 +230,6 @@ class Worker(threading.Thread):
 
         if not delete:
             new_segment = ["CORPUS: " + corpus_directory + '\n', "_ANALYZER: " + self.corpus.analyzer_str +'\n', "_CONTENTFIELD: " + self.corpus.content_field + '\n']
-            print ">>>> New Segment", new_segment
             for k in metadata_dict.keys():
                 metadata_dict[k] = metadata_dict[k]
                 # sanitize various characters from input.
@@ -269,8 +249,3 @@ class Worker(threading.Thread):
             mystr = outf.read()
         self.parent.write({'rebuild_cache_complete': None})
         self.parent.write({'message': 'Finished rebuilding cache file.'})
-        print "STILL in rebuild."
-        print "self.corpus", self.corpus
-        print "self.corpus.args_dir_c", self.corpus.args_dir_c
-        print "self.corpus.path", self.corpus.path
-        

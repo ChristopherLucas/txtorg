@@ -5,14 +5,13 @@ except ImportError:
 
 setup(
     name='TxtOrg',
-    version='0.1.0',
+    version='1.0.0',
     author='Christopher Lucas, Alex Storer, Dustin Tingley',
     author_email='lucas.christopherd@gmail.com',
     packages=['textorganizer'],
     scripts=['bin/txtorg'],
-#    package_data={'textorganizer': ['training_text.txt']},
     license='LICENSE.txt',
     description='Tool to make organizing data for textual analysis easy and scalable',
     long_description=open('README.txt').read(),
-    install_requires=['chardet'],
+    install_requires=['chardet', 'snownlp'],
 )
