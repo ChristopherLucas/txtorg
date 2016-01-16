@@ -1,27 +1,26 @@
 import Queue
 import threading
+import lucene
+try:
+    from lucene import SimpleFSDirectory, StandardAnalyzer, Version, IndexSearcher, File
+except:
+    from org.apache.lucene.store import SimpleFSDirectory
+    from org.apache.lucene.analysis.standard import StandardAnalyzer
+    from org.apache.lucene.util import Version
+    from org.apache.lucene.search import IndexSearcher
+    from org.apache.lucene.index import IndexWriter
+    from java.io import File
+
 import codecs
 import datetime
 import os
-import whoosh
-from whoosh.analysis import StandardAnalyzer, SimpleAnalyzer
-from whoosh.searching import Searcher
-from whoosh.index import exists_in, create_in, open_dir
-from whoosh.fields import Schema, STORED, ID, KEYWORD, TEXT
-
-
-#from . import searchfiles, indexfiles, indexutils, addmetadata
-from . import searchfiles, indexutils, indexfiles, indexCSV
+from . import searchfiles, indexfiles, indexutils, addmetadata
 
 class Corpus:
     scoreDocs = None
     allTerms = None
     allDicts = None
-    allMetadata = None
     termsDocs = None
-    content_field = None
-    # save the args_dir for rebuilding the index
-    args_dir_c = None
 
     def __init__(self, path, analyzer_str = None, field_dict = None, content_field = None):
         self.path = path
@@ -34,7 +33,7 @@ class Corpus:
 
     def get_analyzer_from_str(self, analyzer_str):
         if analyzer_str == 'StandardAnalyzer':
-            return StandardAnalyzer
+            return StandardAnalyzer(Version.LUCENE_CURRENT)
 
 class Worker(threading.Thread):
     def __init__(self, parent, corpus, action, args_dir = None):
@@ -49,18 +48,14 @@ class Worker(threading.Thread):
         self.action = action
         self.args_dir = args_dir
         self._init_index()
-        self.call = {}
 
-        # Make the thread
         super(Worker,self).__init__()
 
     def run(self):
 
-        # Start the thread
-        print "Trying to start thread?! From worker.run"
-        #super(Worker,self).start()
-        #super(Worker,self).join()                
-        print self.action
+        vm_env = lucene.getVMEnv()
+        vm_env.attachCurrentThread()
+
         # yeah, this should be refactored
         if "search" in self.action.keys():
             self.run_searcher(self.action['search'])
@@ -76,13 +71,10 @@ class Worker(threading.Thread):
             self.export_contents(self.action['export_contents'])
         if "import_directory" in self.action.keys():
             self.import_directory(self.action['import_directory'])
-            self.call={'import_directory':self.action['import_directory']}
         if "import_csv" in self.action.keys():
             self.import_csv(self.action['import_csv'])
-            self.call={'import_csv':self.action['import_csv']}            
         if "import_csv_with_content" in self.action.keys():
             self.import_csv_with_content(*self.action['import_csv_with_content'])
-            self.call={'import_csv_with_content':self.action['import_csv_with_content']}
         if "rebuild_metadata_cache" in self.action.keys():
             self.rebuild_metadata_cache(*self.action['rebuild_metadata_cache'])
         if "reindex" in self.action.keys():
@@ -93,70 +85,62 @@ class Worker(threading.Thread):
 
         if not os.path.exists(self.corpus.path):
             os.mkdir(self.corpus.path)
+        try:
+            searcher = IndexSearcher(SimpleFSDirectory(File(self.corpus.path)), True)
+        #except lucene.JavaError:
+        except:
+            analyzer = self.corpus.analyzer
+            writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), analyzer, True, IndexWriter.MaxFieldLength.LIMITED)
+            writer.setMaxFieldLength(1048576)
+            writer.optimize()
+            writer.close()
 
-        analyzer = self.corpus.analyzer
+        self.lucene_index = SimpleFSDirectory(File(self.corpus.path))
+        self.searcher = IndexSearcher(self.lucene_index, True)
+        self.reader = IndexReader.open(self.lucene_index, True)
         self.analyzer = self.corpus.analyzer
-        
-        if exists_in(self.corpus.path):
-            ix = open_dir(self.corpus.path)
-        else:
-            # may need to remove this?  how can we have a schema if we don't know the...uh...schema?
-            schema = Schema(title=TEXT(stored=True,analyzer=analyzer), content=TEXT(analyzer=analyzer),
-                            path=ID(stored=True))
-            ix = create_in(self.corpus.path,schema)
-            writer = ix.writer()            
-            writer.commit()
-
-        self.index = ix
-        self.searcher = ix.searcher();
-        #self.reader = IndexReader.open(self.lucene_index, True)
-        self.reader = ix.reader();
-        #self.analyzer = self.corpus.analyzer
 
     def import_directory(self, dirname):
-        print ">>> ??? <<<"
-        res = indexfiles.IndexFiles(dirname, self.corpus.path, self.analyzer, self.args_dir)
-        self.index = res.index
-        
+        indexfiles.IndexFiles(dirname, self.corpus.path, self.analyzer, self.args_dir)
 
     def import_csv(self, csv_file):
+
         try:
-            res = indexCSV.IndexCSV(self.corpus.path, self.analyzer, csv_file, None, self.args_dir)            
+            writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), self.analyzer, False,
+                                        IndexWriter.MaxFieldLength.LIMITED)
+            changed_rows = addmetadata.add_metadata_from_csv(self.searcher, self.reader, writer, csv_file,self.args_dir,
+                                                             new_files=True)
+            writer.close()
         except UnicodeDecodeError:
+            try:
+                writer.close()
+            except:
+                pass
             self.parent.write({'error': 'CSV import failed: file contained non-unicode characters. Please save the file with UTF-8 encoding and try again!'})
             return
-        self.parent.write({'message': "CSV import complete: {} rows added.".format(res.changed_rows)})
+        self.parent.write({'message': "CSV import complete: %s rows added." % (changed_rows,)})
+
 
     def import_csv_with_content(self, csv_file, content_field):
-        print "import_csv_with_content!!!!!!!!"
         try:
-            res = indexCSV.IndexCSV(self.corpus.path, self.analyzer, csv_file, content_field, self.args_dir)
+            writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), self.analyzer, False, IndexWriter.MaxFieldLength.LIMITED)
+            changed_rows = addmetadata.add_metadata_and_content_from_csv(self.searcher, self.reader, writer, csv_file, content_field, self.args_dir)
+            writer.close()
         except UnicodeDecodeError:
+            try:
+                writer.close()
+            except:
+                pass
             self.parent.write({'error': 'CSV import failed: file contained non-unicode characters. Please save the file with UTF-8 encoding and try again!'})
             return
-        self.parent.write({'message': "CSV import complete: {} rows added.".format(res.changed_rows)})
-        
+        self.parent.write({'message': "CSV import complete: %s rows added." % (changed_rows,)})
 
     def reindex(self):
-        print "Welcome to reindex."
-        print "self.corpus.args_dir_c", self.corpus.args_dir_c
-        print "self.args_dir", self.args_dir
-        print "self.corpus", self.corpus
-        # remove the old index
-        # self._init_index()
-
-        # # create the new index, just like before
-        # args_dir = self.corpus.args_dir_c
-        # print 'args_dir', args_dir
-        # if 'dir' in args_dir:
-        #     self.import_directory(args_dir['dir'])
-        # elif 'file' in args_dir:
-        #     self.import_csv(args_dir['file'])
-        # elif 'full_file' in args_dir:
-        #     self.import_csv_with_content(args_dir['file'],self.corpus.content_field)
-            
-        
-        # self.parent.write({'message': "Reindex successful. Corpus analyzer is now set to %s." % (self.corpus.analyzer_str,)})
+        writer = IndexWriter(SimpleFSDirectory(File(self.corpus.path)), self.corpus.analyzer, False, IndexWriter.MaxFieldLength.LIMITED)
+        indexutils.reindex_all(self.reader, writer, self.corpus.analyzer)
+        writer.optimize()
+        writer.close()
+        self.parent.write({'message': "Reindex successful. Corpus analyzer is now set to %s." % (self.corpus.analyzer_str,)})
         self.parent.write({'status': "Ready!"})
 
     def delete_index(self, cache_filename):
@@ -168,28 +152,31 @@ class Worker(threading.Thread):
     def run_searcher(self, command):
         start_time = datetime.datetime.now()
         try:
-            self.parent.write({'status': 'Running whoosh query %s' % (command,)})
-            #scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
-            print "running...."
-            scoreDocs, allTerms, allDicts, termsDocs, allMetadata = searchfiles.run(self.index, self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
+            self.parent.write({'status': 'Running Lucene query %s' % (command,)})
+            scoreDocs, allTerms, allDicts, termsDocs = searchfiles.run(self.searcher, self.analyzer, self.reader, command, self.corpus.content_field)
 
-        except Exception as e:
-            print 'some error. :('
-            self.parent.write({'error': str(e)})
-            raise e
+        except lucene.JavaError as e:
+            if 'ParseException' in str(e):
+                self.parent.write({'error': "Invalid query; see Lucene documentation for information on query syntax"})
+                return
+            elif 'IllegalArgumentException' in str(e):
+                self.parent.write({'error': "Index is empty and cannot be queried"})
+                return
+            else:
+                raise e
 
         end_time = datetime.datetime.now()
-        self.parent.write({'query_results': (scoreDocs, allTerms, allDicts, termsDocs, allMetadata)})
-        self.parent.write({'status': 'Query completed in %s seconds' % ((end_time - start_time).microseconds*.000001)})
+        self.parent.write({'query_results': (scoreDocs, allTerms, allDicts, termsDocs)})
+#        self.parent.write({'status': 'Query completed in %s seconds' % ((end_time - start_time).microseconds*.000001)})
 
     def export_TDM(self, outfile):
         if self.corpus.scoreDocs is None or self.corpus.allTerms is None or self.corpus.allDicts is None:
             self.parent.write({'error': "No documents selected, please run a query before exporting a TDM."})
             return
 
-        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms,
-                                  self.corpus.termsDocs,self.searcher,self.reader, self.corpus.allMetadata,
-                                  outfile,False,self.corpus.minVal,self.corpus.maxVal)
+
+        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms, self.corpus.termsDocs,self.searcher,
+                                  self.reader, outfile,False,self.corpus.minVal,self.corpus.maxVal)
         self.parent.write({'message': "TDM exported successfully!"})
 
     def export_TDM_csv(self, outfile):
@@ -204,12 +191,9 @@ class Worker(threading.Thread):
         if self.corpus.scoreDocs is None or self.corpus.allTerms is None or self.corpus.allDicts is None:
             self.parent.write({'error': "No documents selected, please run a query before exporting a TDM."})
             return
-        print 'All Terms:'
-        print self.corpus.allTerms
-        print '***************************'
-        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms,
-                                  self.corpus.termsDocs,self.searcher,self.reader, self.corpus.allMetadata,outfile,
-                                  True,self.corpus.minVal,self.corpus.maxVal)
+
+        searchfiles.write_CTM_TDM(self.corpus.scoreDocs, self.corpus.allDicts, self.corpus.allTerms, self.corpus.termsDocs,self.searcher,
+                                  self.reader, outfile, True,self.corpus.minVal,self.corpus.maxVal)
         self.parent.write({'message': "TDM exported successfully!"})
 
     def export_contents(self, outfile):
@@ -225,12 +209,6 @@ class Worker(threading.Thread):
 
 
     def rebuild_metadata_cache(self, cache_filename, corpus_directory, delete = False):
-        print "Rebuild."
-        print "self.corpus", self.corpus
-        print "self.corpus.args_dir_c", self.corpus.args_dir_c
-        print "self.corpus.path", self.corpus.path
-        print cache_filename
-        print corpus_directory
         metadata_dict = indexutils.get_fields_and_values(self.reader)
         # finds the section of the old file to overwrite, and stores the old file in memory.
         # if delete is True, it will remove the index from the file
@@ -249,7 +227,7 @@ class Worker(threading.Thread):
 
         if not delete:
             new_segment = ["CORPUS: " + corpus_directory + '\n', "_ANALYZER: " + self.corpus.analyzer_str +'\n', "_CONTENTFIELD: " + self.corpus.content_field + '\n']
-            print ">>>> New Segment", new_segment
+
             for k in metadata_dict.keys():
                 metadata_dict[k] = metadata_dict[k]
                 # sanitize various characters from input.
@@ -265,12 +243,6 @@ class Worker(threading.Thread):
         with codecs.open(cache_filename, 'w', encoding='UTF-8') as outf:
             for line in new_file:
                 outf.write(line)
-        with codecs.open(cache_filename, 'r', encoding='UTF-8') as outf:
-            mystr = outf.read()
+
         self.parent.write({'rebuild_cache_complete': None})
         self.parent.write({'message': 'Finished rebuilding cache file.'})
-        print "STILL in rebuild."
-        print "self.corpus", self.corpus
-        print "self.corpus.args_dir_c", self.corpus.args_dir_c
-        print "self.corpus.path", self.corpus.path
-        

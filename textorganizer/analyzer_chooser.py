@@ -1,36 +1,91 @@
 from Tkinter import *
-import tkFileDialog
-import re
-import math,random
-import os, sys, lucene, thread, time
-from lucene import Version
+import time, thread, threading
+from whoosh.analysis import StandardAnalyzer, SimpleAnalyzer, StopFilter
+import whoosh
+from chinese import ChineseAnalyzer
+from arabic import ArabicAnalyzer
+from collections import defaultdict
 
-analyzerlist = ["EnglishAnalyzer ", "StopAnalyzer", "SimpleAnalyzer", "WhitespaceAnalyzer", "StandardAnalyzer", "ArabicAnalyzer", "ArmenianAnalyzer", "BasqueAnalyzer", \
-     "BulgarianAnalyzer", "BrazilianAnalyzer", "CatalanAnalyzer", "CJKAnalyzer", "CzechAnalyzer", "DanishAnalyzer", "DutchAnalyzer", \
-     "FinnishAnalyzer", "FrenchAnalyzer", "GalicianAnalyzer", "GermanAnalyzer", "GreekAnalyzer", "HindiAnalyzer", "HungarianAnalyzer", \
-     "IndonesianAnalyzer", "ItalianAnalyzer", "LatvianAnalyzer", "NorwegianAnalyzer", "PersianAnalyzer", "PortugueseAnalyzer", \
-     "RomanianAnalyzer", "RussianAnalyzer", "SwedishAnalyzer", "ThaiAnalyzer", "TurkishAnalyzer"]
+# Next time?  http://textminingonline.com/dive-into-nltk-part-vi-add-stanford-word-segmenter-interface-for-python-nltk
 
-from . import stemmingtools
+try:
+    import lucene
+    haslucene = True
+    from fromlucene import LuceneTokenizer
+    from org.apache.lucene.analysis.ar import ArabicAnalyzer as AA_lucene
+    from org.apache.lucene.analysis.hy import ArmenianAnalyzer
+    from org.apache.lucene.analysis.eu import BasqueAnalyzer
+    from org.apache.lucene.analysis.br import BrazilianAnalyzer
+    from org.apache.lucene.analysis.bg import BulgarianAnalyzer
+    from org.apache.lucene.analysis.ca import CatalanAnalyzer
+    from org.apache.lucene.analysis.cjk import CJKAnalyzer
+    from org.apache.lucene.analysis.standard import ClassicAnalyzer
+    from org.apache.lucene.analysis.cz import CzechAnalyzer
+    from org.apache.lucene.analysis.da import DanishAnalyzer
+    from org.apache.lucene.analysis.en import EnglishAnalyzer
+    from org.apache.lucene.analysis.fi import FinnishAnalyzer
+    from org.apache.lucene.analysis.fr import FrenchAnalyzer
+    from org.apache.lucene.analysis.gl import GalicianAnalyzer
+    from org.apache.lucene.analysis.de import GermanAnalyzer
+    from org.apache.lucene.analysis.el import GreekAnalyzer
+    from org.apache.lucene.analysis.hi import HindiAnalyzer
+    from org.apache.lucene.analysis.hu import HungarianAnalyzer
+    from org.apache.lucene.analysis.id import IndonesianAnalyzer
+    from org.apache.lucene.analysis.ga import IrishAnalyzer
+    from org.apache.lucene.analysis.it import ItalianAnalyzer
+    from org.apache.lucene.analysis.lv import LatvianAnalyzer
+    from org.apache.lucene.analysis.no import NorwegianAnalyzer
+    from org.apache.lucene.analysis.fa import PersianAnalyzer
+    from org.apache.lucene.analysis.pt import PortugueseAnalyzer
+    from org.apache.lucene.analysis.ro import RomanianAnalyzer
+    from org.apache.lucene.analysis.ru import RussianAnalyzer
+    from org.apache.lucene.analysis.ckb import SoraniAnalyzer
+    from org.apache.lucene.analysis.es import SpanishAnalyzer
+    from org.apache.lucene.analysis.standard import StandardAnalyzer as SA_Lucene
+    from org.apache.lucene.analysis.core import StopAnalyzer
+    from org.apache.lucene.analysis.sv import SwedishAnalyzer
+    from org.apache.lucene.analysis.th import ThaiAnalyzer
+    from org.apache.lucene.analysis.tr import TurkishAnalyzer
+    from org.apache.lucene.analysis.standard import UAX29URLEmailAnalyzer
+
+    lucenelist = ['Arabic Analyzer', 'Armenian Analyzer', 'Basque Analyzer', 'Brazilian Analyzer', 'Bulgarian Analyzer', 'Catalan Analyzer', 'CJK Analyzer', 'Classic Analyzer', 'Czech Analyzer', 'Danish Analyzer', 'English Analyzer', 'Finnish Analyzer', 'French Analyzer', 'Galician Analyzer', 'German Analyzer', 'Greek Analyzer', 'Hindi Analyzer', 'Hungarian Analyzer', 'Indonesian Analyzer', 'Irish Analyzer', 'Italian Analyzer', 'Latvian Analyzer', 'Norwegian Analyzer', 'Persian Analyzer', 'Portuguese Analyzer', 'Romanian Analyzer', 'Russian Analyzer', 'Sorani Analyzer', 'Spanish Analyzer', 'Standard Analyzer', 'Stop Analyzer', 'Swedish Analyzer', 'Thai Analyzer', 'Turkish Analyzer', 'UAX29URLEmail Analyzer']
+    lucenefs = [AA_lucene,ArmenianAnalyzer,BasqueAnalyzer,BrazilianAnalyzer,BulgarianAnalyzer,CatalanAnalyzer,CJKAnalyzer,ClassicAnalyzer,CzechAnalyzer,DanishAnalyzer,EnglishAnalyzer,FinnishAnalyzer,FrenchAnalyzer,GalicianAnalyzer,GermanAnalyzer,GreekAnalyzer,HindiAnalyzer,HungarianAnalyzer,IndonesianAnalyzer,IrishAnalyzer,ItalianAnalyzer,LatvianAnalyzer,NorwegianAnalyzer,PersianAnalyzer,PortugueseAnalyzer,RomanianAnalyzer,RussianAnalyzer,SoraniAnalyzer,SpanishAnalyzer,SA_Lucene,StopAnalyzer,SwedishAnalyzer,ThaiAnalyzer,TurkishAnalyzer,UAX29URLEmailAnalyzer]
+except:
+    haslucene = False
+
 
 class AnalyzerChooser:
+    #def __init__(self):    
     def __init__(self, parent):
         self.main_gui = parent
-        self.curlucene = lucene.initVM()        
-        r = self.root = Toplevel()
-        self.root.title('txtorg')   
+        #self.root = Toplevel()
+        self.root = Toplevel(parent.root)        
+        r = self.root
 
-        self.analyzers = []
-        self.analyzerliststr = []
+        print 'parent', parent
+        print 'root', r
+        
+        r.title('Choose your Analyzer')
 
-        for a in analyzerlist:
-            try:
-                exec('from lucene import '+a)
-                exec('self.analyzers.append('+a+'(Version.LUCENE_CURRENT))')
-                exec('self.analyzerliststr.append("'+a+'")')
-            except:
-                print "Analyzer not present", a
-                        
+        self.analyzers = [StandardAnalyzer, SimpleAnalyzer, ChineseAnalyzer, ArabicAnalyzer]
+        self.analyzerliststr = ['English StandardAnalyzer', "English SimpleAnalyzer", "SnowNLP Chinese", "Nielsen Arabic Analyzer"]
+        # hardcoded, :(
+        langs = whoosh.lang.languages
+        #langs = ('ar', 'da', 'nl', 'fi', 'fr', 'de', 'hu', 'it', 'no', 'pt', 'ro', 'ru', 'es', 'sv', 'tr')
+        aliases = ('Arabic','Danish','Dutch','English','Finnish','French','German','Hungarian','Italian','Norwegian','Portuguese','Romanian','Russian','Spanish','Swedish','Turkish')
+
+        for (l,a) in zip(langs,aliases):
+            self.analyzerliststr.append(a + ' Analyzer (Whoosh)')
+            self.analyzers.append(whoosh.analysis.LanguageAnalyzer(l))
+
+        if haslucene:
+            for (name,fn) in zip(lucenelist,lucenefs):
+                print name, fn
+                self.analyzerliststr.append(name + ' (Lucene)')
+                self.analyzers.append(LuceneTokenizer(fn))
+
+        print self.analyzers
+                
         f = PanedWindow(r, showhandle=True)
         lf = PanedWindow(f, relief=GROOVE, borderwidth=2,showhandle=True)
         f.pack(fill=BOTH,expand=1)
@@ -58,12 +113,12 @@ class AnalyzerChooser:
         self.e.configure(state=NORMAL)
         self.e.insert(0, "Type text here to test each analyzer.")
 
-        self.searchbutton = Button(cft, text="Tokenize",state=DISABLED,command=self.updateTokens)
-        self.searchbutton.pack(side=LEFT, padx=5, pady=8)
+        self.analyzebutton = Button(cft, text="Tokenize",state=DISABLED,command=self.updateTokens)
+        self.analyzebutton.pack(side=LEFT, padx=5, pady=8)
 
         self.tokentext = Text(cfb)
 
-        self.tokentext.insert(END,"Documents: 0")
+        self.tokentext.insert(END,"Tokens:")
 
         self.tokentext.pack()
 
@@ -71,10 +126,10 @@ class AnalyzerChooser:
         cfb.pack(fill=X)
         cf.pack(side=LEFT,expand=1,fill=BOTH,pady=10,padx=10)
 
-        
+
 
         # Pack it all into the main frame
-        
+
         buttonframe = Frame(r)
         Button(buttonframe, text="Cancel", command=self.cancel).pack(side=LEFT,padx=5,pady=8)
         Button(buttonframe, text="OK", command=self.ok).pack(side=LEFT)
@@ -82,17 +137,15 @@ class AnalyzerChooser:
         f.pack()
         # set up event handling
 
-        #self.analyzerlist.bind('<ButtonRelease-1>',lambda x: self.updateMetadata()
-        #self.analyzerlist.bind('<Key>',lambda x: self.updateMetadata())        
-
         # populate fields and run the gui
-        
+
         self.updateAnalyzer()
 
         # poll for changes in the list
         self.current = None
         self.poll()
-        self.root.mainloop()
+        #self.root.mainloop()
+        print "Done?? 999"
 
     def ok(self):
         analyzeridx = self.analyzerlist.curselection() # was curselection
@@ -100,90 +153,84 @@ class AnalyzerChooser:
             self.cancel()
             return
         analyzeridx = int(analyzeridx[0])
-        analyzer = self.analyzers[analyzeridx]
         analyzerstr = self.analyzerliststr[analyzeridx]
+        if 'Lucene' in analyzerstr or 'Whoosh' in analyzerstr:
+            analyzer = lambda: self.analyzers[analyzeridx]
+        else:
+            analyzer = self.analyzers[analyzeridx]
         self.main_gui.write({'set_analyzer': (analyzerstr, analyzer)})
+        print "self.root:", self.root
         self.root.destroy()
+        print 'Destroyed analyzer chooser'
 
     def cancel(self):
         self.root.destroy()
 
-    def after(self, wait, func):   # passed time in msecs, function to call.
-        # run the function in a new thread, so it won't hang main script
-        thread.start_new_thread(self.delay, (wait, func))
+    # def after(self, wait, func):   # passed time in msecs, function to call.
+    #     # run the function in a new thread, so it won't hang main script
+    #     print "Aftering."
+    #     thread.start_new_thread(self.delay, (wait, func))
 
     def delay(self, wait, func):
         time.sleep(wait * .001)    # convert msecs into secs and delay this thread
         func()	                          # call the function passed as a parameter
-        
+
     def updateAnalyzer(self):
         """update the list of items in the corpus"""
         for item in self.analyzerliststr:
             self.analyzerlist.insert(END, item)
 
-    def getCorpus(self):        
-        """return the list of selected items in the corpus"""
-        items = self.analyzerlist.curselection()        
-        itemstr = [self.analyzerlist.get(int(item)) for item in items]
-
-        return itemstr
-            
-    def updateMetadata(self):
-        """update the metadata field to reflect the tags from the selected corpus"""                        
-        # enable clicking on these
-        self.searchbutton.configure(state=NORMAL)
-        self.e.configure(state=NORMAL)
-
-        self.resetTokens()
-        self.updateTokens()
-        
     def updateTokens(self):
-        """update the numbers displayed for the documents and terms"""               
+        """update the numbers displayed for the documents and terms"""
 
-        # Perform the search and return the number of terms and documents        
+        # Perform the search and return the number of terms and documents
         print "Update tokens"
         # Update the GUI
         self.tokentext.configure(state=NORMAL)
-        
+
         self.tokentext.delete(1.0,END)
         self.tokentext.insert(END,"Tokens: ")
 
-        analyzerstr = self.analyzerlist.curselection() # was curselection
-        if len(analyzerstr)==0:
+        analyzeridx = self.analyzerlist.curselection() # was curselection        
+        if len(analyzeridx)==0:
             return
-        analyzer = self.analyzers[int(analyzerstr[0])]
+        analyzeridx = int(analyzeridx[0])
+        analyzerstr = self.analyzerliststr[analyzeridx]
+        if 'Lucene' in analyzerstr or 'Whoosh' in analyzerstr:
+            analyzer = lambda: self.analyzers[analyzeridx]
+        else:
+            analyzer = self.analyzers[analyzeridx]
+        
+        #print analyzer
+        #print int(analyzerstr[0])
+        #print analyzer
 
         print "Selected analyzer"
 
-        self.curlucene.attachCurrentThread()
-        
-        tokenStream = analyzer.tokenStream("contents", lucene.StringReader(self.e.get()))
-        term = tokenStream.addAttribute(lucene.TermAttribute.class_)
-
-        termA = lucene.TermAttributeImpl()
+        # some thread nonsense?
+        #self.curlucene.attachCurrentThread()
+        #tokenStream = analyzer.tokenStream("contents", lucene.StringReader(self.e.get()))
+        #term = tokenStream.addAttribute(lucene.TermAttribute.class_)
+        #termA = lucene.TermAttributeImpl()
 
         if len(self.e.get())>0:
-            while tokenStream.incrementToken():
-                # Note: in Lucene 2.9.4, for some reason this Attribute is not a TermAttribute
-                # This is a bug.  The hacky way around it is to parse the toString() result manually.
-                if lucene.VERSION=='2.9.4':
-                    mys = term.toString()
-                    tokenstring = re.findall('\((.*?),',mys)[0]
-                    self.tokentext.insert(END, "[%s]" %(tokenstring))
-                else:
-                    self.tokentext.insert(END, "[%s]" %(term.term()))
-                
+            print 'Analyzer:', analyzer
+            print 'self.e.get, whatever that is:', self.e.get()            
+            athread = AnalyzerThread(analyzer,unicode(self.e.get()))
+            athread.start()
+            athread.join()
+            print athread.tokens
+            tokens = [t.text for t in athread.tokens]
+            print tokens
+            for term in tokens:
+                self.tokentext.insert(END, "[%s]" %(term))
+
 
     def resetTokens(self):
-        """reset the numbers displayed for the documents and terms"""                
+        """reset the numbers displayed for the documents and terms"""
         self.tokentext.configure(state=NORMAL)
-
-        numDocs = 0
-        numTerms = 0
-        
         self.tokentext.delete(1.0,END)
         self.tokentext.insert(END,"Tokens: ")
-                
         self.tokentext.configure(state=DISABLED)
 
     def poll(self):
@@ -192,6 +239,22 @@ class AnalyzerChooser:
         except TclError:
             return
         if now != self.current:
-            self.updateMetadata()            
             self.current = now
-        self.after(250, self.poll)
+        # is anything selected?
+        if len(now)>0:
+            self.analyzebutton.configure(state=NORMAL)
+        self.root.after(25, self.poll)
+        #self.after(10, self.poll)
+
+        
+class AnalyzerThread(threading.Thread):
+    def __init__(self,analyzer,string):
+         super(AnalyzerThread, self).__init__()
+         self.analyzer=analyzer()
+         self.string = string
+         self.tokens = []
+    def run(self):
+        self.tokens = self.analyzer(self.string)
+
+if __name__ == "__main__":
+    ac = AnalyzerChooser()

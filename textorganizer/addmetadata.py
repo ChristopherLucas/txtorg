@@ -1,10 +1,11 @@
-from lucene import QueryParser, IndexSearcher, SimpleFSDirectory, File, VERSION, initVM, Version, IndexReader, Term, BooleanQuery, BooleanClause, TermQuery, Field, IndexWriter, Document
 import os
 import sys
 import csv
 import codecs
 import uuid
 from preprocessing import *
+
+
 
 def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
     # csv.py doesn't do Unicode; encode temporarily as UTF-8:
@@ -37,7 +38,7 @@ def add_metadata_to_doc(lucenedoc,fieldnames,values):
 
     for field in original_fields:
         edited_doc.add(field)
-                
+
     # Now, add back the unstored "contents" field
     try:
         file = open(filepath)
@@ -99,7 +100,7 @@ def add_new_document_with_metadata_and_content(writer, fieldnames, values, conte
                          Field.Index.NOT_ANALYZED))
 
     for idx, name in enumerate(fieldnames):
-        if name == content_field: 
+        if name == content_field:
             contents = values[idx].lower()
             contents = preprocess(contents, args_dir)
             doc.add(Field(fieldnames[idx].lower(),contents,Field.Store.YES,Field.Index.ANALYZED,Field.TermVector.YES))
@@ -122,7 +123,7 @@ def add_metadata_from_csv(searcher,reader,writer,csvfile,args_dir, new_files=Fal
 
         filepath = line[0]
 
-        if not os.path.exists(filepath): 
+        if not os.path.exists(filepath):
             print "Could not read file {0}, skipping".format(filepath)
             continue
 
@@ -144,11 +145,11 @@ def add_metadata_from_csv(searcher,reader,writer,csvfile,args_dir, new_files=Fal
                 successful_rows += 1
                 old_doc = searcher.doc(scoreDoc.doc)
                 edited_doc = add_metadata_to_doc(old_doc,fieldnames,line[1:])
-                if edited_doc is None: 
+                if edited_doc is None:
                     continue
 
                 writer.updateDocument(Term("path",filepath),edited_doc)
-            
+
     writer.optimize()
 
     # return the number of rows changed
@@ -168,7 +169,7 @@ def add_metadata_and_content_from_csv(searcher, reader, writer, csvfile, content
 
         add_new_document_with_metadata_and_content(writer, fieldnames, line, content_field, args_dir)
         successful_rows += 1
-            
+
 
     print "Optimizing index..."
     writer.optimize()

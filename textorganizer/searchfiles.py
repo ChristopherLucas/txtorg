@@ -1,7 +1,10 @@
 #!/usr/bin/env python
-from lucene import \
-    QueryParser, IndexSearcher, SimpleFSDirectory, File, \
-    VERSION, initVM, Version, IndexReader, TermQuery, Term, Field, MatchAllDocsQuery
+
+#    from lucene import \
+#    QueryParser, IndexSearcher, SimpleFSDirectory, File, \
+#    VERSION, initVM, Version, IndexReader, TermQuery, Term, Field, MatchAllDocsQuery
+from whoosh.qparser import QueryParser
+
 import threading, sys, time, os, csv, re, codecs
 from shutil import copy2
 import cStringIO
@@ -22,10 +25,13 @@ class DictUnicodeWriter(object):
 
     def writerow(self, D):
 #        self.writer.writerow({k:v.encode("utf-8") for k,v in D.items()})
-    
+
         row = {}
         for k, v in D.items():
-            row[k] = v.encode("utf-8")
+            if type(v)=='str':
+                row[k] = v.encode("utf-8")
+            else:
+                row[k] = v
 
         self.writer.writerow(row)
         # Fetch UTF-8 output from the queue ...
@@ -57,43 +63,61 @@ class Ticker(object):
             time.sleep(1.0)
 
 
-def run(searcher, analyzer, reader, command, content_field="contents"):
+def run(index, searcher, analyzer, reader, command, content_field="contents"):
 
 
-
+    print 'content_field is', content_field
     """check to see whether the user specified a field"""
     print command
     if command == 'all':
-        query = MatchAllDocsQuery()
+        myresults = reader.all_doc_ids()
         print 'Query Completed'
     else:
-        query = QueryParser(Version.LUCENE_CURRENT, content_field, analyzer).parse(command)
+        query = QueryParser(content_field,schema=index.schema).parse(command)
+        myresults = searcher.docs_for_query(query)
         print 'Query Completed'
-
-    scoreDocs = searcher.search(query, reader.maxDoc()).scoreDocs
 
     allDicts = []
     allTerms = set()
+    allMetadata = []
     termsDocs = dict()
 
-    for scoreDoc in scoreDocs:
-        doc = searcher.doc(scoreDoc.doc)
-        vector = reader.getTermFreqVector(scoreDoc.doc,content_field)
+    scoreDocs = []
+    for docnum in myresults:
+        #doc = searcher.doc(scoreDoc.doc)
+        vector = searcher.vector_as("frequency", docnum, content_field)
+        #vector = reader.getTermFreqVector(scoreDoc.doc,content_field)
         if vector is None: continue
 
         d = dict()
-        allTerms = allTerms.union(map(lambda x: x.encode('utf-8'),vector.getTerms()))
-        for (t,num) in zip(vector.getTerms(),vector.getTermFrequencies()):
+        m = dict()
+        # a vector is a generator  of tuples -- convert of list
+        # [(u"apple", 3), (u"bear", 2), (u"cab", 2)]
+        #vector = [elt for elt in vector]            
+        #vterms = [elt[0] for elt in vector]
+        #vvalues = [elt[1] for elt in vector]
+        #allTerms = allTerms.union(map(lambda x: x.encode('utf-8'),vterms))        
+#        for (t,num) in zip(vterms,vvalues):
+        for (t,num) in vector:
+            allTerms.add(t.encode('utf-8'))
             d[t.encode('utf-8')] = num
             if t in termsDocs:
                 termsDocs[t.encode('utf-8')] += 1
             else:
                 termsDocs[t.encode('utf-8')] = 1
-        d["txtorg_id"] = doc.get("txtorg_id").encode('utf-8')
-        allDicts.append(d)
-    names = set(allTerms)
+        d["txtorg_id"] = searcher.stored_fields(docnum)["txtorg_id"].encode('utf-8')
 
-    return scoreDocs, allTerms, allDicts, termsDocs
+        # Build the metadata
+        for k in searcher.stored_fields(docnum):
+            if k != 'txtorg_id':
+                m[k] = searcher.stored_fields(docnum)[k].encode('utf-8')
+        allDicts.append(d)
+        allMetadata.append(m)
+        scoreDocs.append(docnum)
+    names = set(allTerms)
+    print allMetadata
+
+    return scoreDocs, allTerms, allDicts, termsDocs, allMetadata
 
 def filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs):
     import copy
@@ -113,7 +137,7 @@ def filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs):
                 d.pop(t)
 
     return newDicts, newTerms-set(removeTerms)
-    
+
 def writeTDM(allDicts,allTerms,termsDocs,fname,minDocs=0,maxDocs=sys.maxint):
     allDicts, allTerms = filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs)
     l = list(allTerms)
@@ -132,7 +156,9 @@ def writeTDM(allDicts,allTerms,termsDocs,fname,minDocs=0,maxDocs=sys.maxint):
         c.writerow(d)
     f.close()
 
-def write_CTM_TDM(scoreDocs, allDicts, allTerms, termsDocs, searcher, reader, fname, stm_format = False,minDocs=0,maxDocs=sys.maxint):
+def write_CTM_TDM(scoreDocs, allDicts, allTerms,
+                  termsDocs, searcher, reader, allMetadata,
+                  fname, stm_format = False,minDocs=0,maxDocs=sys.maxint):
     allDicts, allTerms = filterDictsTerms(allDicts,allTerms,termsDocs,minDocs,maxDocs)
     l = list(allTerms)
     l.sort()
@@ -172,27 +198,14 @@ def write_CTM_TDM(scoreDocs, allDicts, allTerms, termsDocs, searcher, reader, fn
     # writes metadata in CSV format
     all_ids = [d['txtorg_id'] for d in allDicts]
 
-    write_metadata(searcher, reader, all_ids, md_filename)
-
-def write_metadata(searcher, reader, document_ids, fname):
-    allFields = set([])
-    docFields = []
-
-    for txtorg_id in document_ids:
-        query = TermQuery(Term('txtorg_id',txtorg_id))
-        scoreDocs = searcher.search(query, reader.maxDoc()).scoreDocs
-        assert len(scoreDocs) == 1
-        scoreDoc = scoreDocs[0]
-        doc = searcher.doc(scoreDoc.doc)
-        df = {}
-        for f in doc.getFields():
-            field = Field.cast_(f)
-            df[field.name()] = field.stringValue()
-        docFields.append(df)
-        allFields = allFields.union(set(df.keys()))
     
-    fields = [u'name',u'path'] + sorted([x for x in allFields if x not in ['name','path']])
+    write_metadata(allMetadata, md_filename)    
 
+def write_metadata(allMetadata, fname):
+    #fields = sorted(allDicts[0].keys())
+    #fields = [u'name',u'path'] + sorted([x for x in allFields if x not in ['name','path']])
+
+    fields = allMetadata[0].keys()
     with codecs.open(fname, 'w', encoding='UTF-8') as outf:
         dw = DictUnicodeWriter(outf, fields)
 
@@ -203,7 +216,7 @@ def write_metadata(searcher, reader, document_ids, fname):
         dw.writerow(dhead)
 
         # writing data
-        for d in docFields:
+        for d in allMetadata:
             dw.writerow(d)
 
 def write_contents(allDicts, searcher, reader, fname, content_field = "contents"):

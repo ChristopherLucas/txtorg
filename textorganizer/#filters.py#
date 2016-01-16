@@ -2,9 +2,7 @@ import re
 from lucene import *
 
 try:
-    from org.apache.pylucene.analysis import PythonTokenFilter
-except:
-    'Using old version.'
+    from lucene import PositionalStopFilter
 
 ## Here is the code for the EnglishPossessiveFilter in Java.
 
