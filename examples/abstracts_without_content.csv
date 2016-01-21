@@ -1,0 +1,7 @@
+abstract,author,title,year,journal,volume,issue
+./examples/abstracts/1.txt,"Kenneth N. Waltz","Nuclear Myths and Political Realities",1990,"American Political Science Review",84,3
+./examples/abstracts/2.txt,"William H. Riker","Implications from the Disequilibrium of Majority Rule for the Study of Institutions",1980,"American Political Science Review",74,2
+./examples/abstracts/3.txt,"Robert A. Dahl","The Concept of Power",1957,"Behavioral Science",2,3
+./examples/abstracts/4.txt,"Maurice Duverger","A New Political System Model: Semi-Presidential Government",1980,"European Journal of Political Research",8,2
+./examples/abstracts/5.txt,"Philip E. Converse","Information Flow and the Stability of Partisan Attitudes",1962,"Public Opinion Quarterly",26,4
+./examples/abstracts/6.txt,"Douglass C. North","A Transaction Cost Theory of Politics",1990,"Journal of Theoretical Politics",2,4
