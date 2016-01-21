@@ -12,5 +12,5 @@ setup(
     scripts=['bin/txtorg'],
     license='LICENSE.txt',
     description='Tool to make organizing data for textual analysis easy and scalable',
-    install_requires=['chardet', 'snownlp'],
+    install_requires=['whoosh','chardet', 'snownlp'],
 )
