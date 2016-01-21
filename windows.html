@@ -8,7 +8,7 @@ layout: default
 
   <ol>
     <li><a href="https://www.python.org/download/releases/2.7.6/">Install Python</a> (ideally 2.7 but definitely not 3.x)</li>
-    <li><a href="https://github.com/ChristopherLucas/txtorg/zipball/master">Download the zip file</a> and unzip it. This should create a directory named "ChristopherLucas-txtorg-[LATEST GIT COMMIT NUMBER].zip".</li>
+    <li><a href="https://github.com/ChristopherLucas/txtorg/zipball/master">Download the zip file</a> and unzip it. This should create a directory named "ChristopherLucas-txtorg-[LATEST GIT COMMIT NUMBER]".</li>
     <li>To <a href="http://docs.python.org/2/install/#standard-build-and-install">install the package</a>,
       first open a command prompt (Start > All Programs > Accessories > Command Prompt). Next, navigate to the directory "ChristopherLucas-txtorg-[LATEST GIT COMMIT NUMBER].zip". To do so, use the
       cd command, followed by the full path to the directory. Then, install the package with the command setup.py install. These steps are show in the code block below.</li>
@@ -16,7 +16,12 @@ layout: default
 <pre><code>$ cd this_is_where/I_unzipped_the_file/ChristopherLucas-txtorg-[LATEST GIT COMMIT NUMBER] # Navigate to the folder 
 $ setup.py install
 </code></pre>
-    <li>Open the directory where you unzipped the file, go to bin, and rename txtorg to txtorg.py. Double click this file to run txtorg.</li>
+    <li>Open the directory where you unzipped the file, go to bin, and
+    rename txtorg to txtorg.py. Execute this file to run txtorg. By
+    default, you should be able to do so by double-clicking this
+    file. If you've changed the default behavior for python scripts,
+    you may have to execute this file from the command line with 
+    'python txtorg.py'.</li>
   </ol>  
 <p>And that should do it!</p>
 
